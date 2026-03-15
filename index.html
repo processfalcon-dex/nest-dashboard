@@ -434,7 +434,7 @@
     };
 
     // ─── Fetch all rows (handles pagination) ─────────────────────────────────
-    async function fetchAllRows() {
+    async function fetchAllRows(tableId = GLIDE_TABLE) {
       let rows = [];
       let cursor = undefined;
 
@@ -442,7 +442,7 @@
         const body = {
           appID: GLIDE_APP_ID,
           queries: [{
-            tableName: GLIDE_TABLE,
+            tableName: tableId,
             ...(cursor ? { startAt: cursor } : {}),
           }],
         };
@@ -768,22 +768,28 @@
             }
           }
 
-          // Installs this week
-          const installDate = parseDate(row[C.installationDateFinal]);
-          if (installDate && installDate >= thisWeek.start && installDate <= thisWeek.end) {
-            installsThisWeek++;
-          }
-
-          // Installs next week
-          if (installDate && installDate >= nextWeek.start && installDate <= nextWeek.end) {
-            installsNextWeek++;
-          }
+          // Installs: skip here — handled from Scheduled Work table below
 
           // New submissions (7d)
           const soldDate = parseDate(row[C.soldDate]);
           if (soldDate && soldDate >= sevenDaysAgo) {
             submissions7d++;
           }
+        }
+
+        // ── Installs from Scheduled Work table ──────────────────────────────
+        try {
+          const swRows = await fetchAllRows('native-table-9DBHakVNiyCJ24SCuO9c');
+          for (const sw of swRows) {
+            const workType = (sw['ZOXBN'] || '').toString().trim();
+            if (workType !== 'Installation') continue;
+            const scheduledStart = parseDate(sw['3Df4p']);
+            if (!scheduledStart) continue;
+            if (scheduledStart >= thisWeek.start && scheduledStart <= thisWeek.end) installsThisWeek++;
+            if (scheduledStart >= nextWeek.start && scheduledStart <= nextWeek.end) installsNextWeek++;
+          }
+        } catch(e) {
+          console.warn('Scheduled Work fetch failed:', e);
         }
 
         // Sort stalled candidates by oldest first, take top 10
