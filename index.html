@@ -95,9 +95,38 @@
     }
 
     th { color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .loading-shimmer {
+      background: linear-gradient(90deg, #1c2133 25%, #252e44 50%, #1c2133 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+      display: inline-block;
+      color: transparent;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    #data-error-banner {
+      display: none;
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px;
+      color: #f87171;
+      padding: 10px 16px;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
   </style>
 </head>
 <body class="min-h-screen text-gray-100 p-4 md:p-8">
+
+  <!-- Error Banner -->
+  <div id="data-error-banner">
+    ⚠️ <span id="data-error-msg">Failed to load live data from Glide API. Showing last known values.</span>
+  </div>
 
   <!-- HEADER -->
   <header class="mb-8">
@@ -121,9 +150,9 @@
         </div>
         <div class="text-right">
           <div class="text-gray-400 text-xs flex items-center justify-end gap-1"><span class="pulse-dot"></span>Last Updated</div>
-          <div id="lastUpdated" class="text-white font-mono font-medium text-sm"></div>
+          <div id="lastUpdated" class="text-white font-mono font-medium text-sm">—</div>
         </div>
-        <button onclick="refreshDashboard()" class="gmail-btn" style="padding:6px 14px;font-size:12px;">↻ Refresh</button>
+        <button onclick="refreshDashboard()" id="refresh-btn" class="gmail-btn" style="padding:6px 14px;font-size:12px;">↻ Refresh</button>
       </div>
     </div>
 
@@ -131,38 +160,38 @@
     <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 mt-6">
       <div class="stat-card">
         <div class="text-xs text-gray-500 mb-1">Active Jobs</div>
-        <div class="text-2xl font-bold text-white">147</div>
-        <div class="text-xs text-green-400 mt-1">↑ 12 this month</div>
+        <div id="kpi-active-jobs" class="text-2xl font-bold text-white loading-shimmer">000</div>
+        <div id="kpi-active-jobs-sub" class="text-xs text-gray-500 mt-1">Loading live data...</div>
       </div>
       <div class="stat-card">
         <div class="text-xs text-gray-500 mb-1">Stalled (7+ days)</div>
-        <div class="text-2xl font-bold text-red-400">23</div>
-        <div class="text-xs text-red-400 mt-1">↑ 4 since last week</div>
+        <div id="kpi-stalled" class="text-2xl font-bold text-red-400 loading-shimmer">00</div>
+        <div id="kpi-stalled-sub" class="text-xs text-gray-500 mt-1">Loading...</div>
       </div>
       <div class="stat-card">
         <div class="text-xs text-gray-500 mb-1">Avg System Size</div>
-        <div class="text-2xl font-bold text-white">9.4 kW</div>
-        <div class="text-xs text-blue-400 mt-1">Residential mix</div>
+        <div class="text-2xl font-bold text-gray-500">N/A</div>
+        <div class="text-xs text-gray-600 mt-1">Coming soon</div>
       </div>
       <div class="stat-card">
         <div class="text-xs text-gray-500 mb-1">Avg Gross Margin</div>
-        <div class="text-2xl font-bold text-white">31.2%</div>
-        <div class="text-xs text-green-400 mt-1">↑ 1.4pp MoM</div>
+        <div class="text-2xl font-bold text-gray-500">N/A</div>
+        <div class="text-xs text-gray-600 mt-1">Coming soon</div>
       </div>
       <div class="stat-card">
         <div class="text-xs text-gray-500 mb-1">🔧 Installs This Week</div>
-        <div class="text-2xl font-bold text-white">8</div>
-        <div class="text-xs text-blue-400 mt-1">Current week</div>
+        <div id="kpi-installs-this-week" class="text-2xl font-bold text-white loading-shimmer">00</div>
+        <div id="kpi-installs-this-week-sub" class="text-xs text-gray-500 mt-1">Loading...</div>
       </div>
       <div class="stat-card">
         <div class="text-xs text-gray-500 mb-1">📅 Installs Next Week</div>
-        <div class="text-2xl font-bold text-white">12</div>
-        <div class="text-xs text-blue-400 mt-1">Scheduled</div>
+        <div id="kpi-installs-next-week" class="text-2xl font-bold text-white loading-shimmer">00</div>
+        <div id="kpi-installs-next-week-sub" class="text-xs text-gray-500 mt-1">Loading...</div>
       </div>
       <div class="stat-card">
         <div class="text-xs text-gray-500 mb-1">📋 New Submissions (7d)</div>
-        <div class="text-2xl font-bold text-white">23</div>
-        <div class="text-xs text-green-400 mt-1">Last 7 days</div>
+        <div id="kpi-submissions-7d" class="text-2xl font-bold text-white loading-shimmer">00</div>
+        <div id="kpi-submissions-7d-sub" class="text-xs text-gray-500 mt-1">Loading...</div>
       </div>
     </div>
   </header>
@@ -170,7 +199,7 @@
   <!-- MAIN GRID -->
   <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
 
-    <!-- CARD 1: Priority Emails -->
+    <!-- CARD 1: Priority Emails (sample data — Gmail integration coming later) -->
     <div class="card p-5 flex flex-col gap-4 xl:col-span-1">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
@@ -272,9 +301,8 @@
           <h2 class="text-sm font-semibold text-white">Stalled Projects</h2>
         </div>
         <div class="flex items-center gap-3 text-xs">
-          <span class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-red-500 opacity-60"></span><span class="text-gray-400">7+ days</span></span>
-          <span class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-yellow-400 opacity-60"></span><span class="text-gray-400">3–6 days</span></span>
-          <span class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-green-500 opacity-40"></span><span class="text-gray-400">&lt;3 days</span></span>
+          <span class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-red-500 opacity-60"></span><span class="text-gray-400">&gt;14 days</span></span>
+          <span class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-yellow-400 opacity-60"></span><span class="text-gray-400">7–14 days</span></span>
         </div>
       </div>
       <div class="overflow-x-auto -mx-1">
@@ -283,94 +311,17 @@
             <tr class="border-b border-gray-800">
               <th class="text-left py-2 px-3 pb-3">Customer</th>
               <th class="text-left py-2 px-3 pb-3">Stage</th>
-              <th class="text-center py-2 px-3 pb-3">Overdue</th>
+              <th class="text-center py-2 px-3 pb-3">Days in Stage</th>
               <th class="text-left py-2 px-3 pb-3">State</th>
-              <th class="text-left py-2 px-3 pb-3">System</th>
               <th class="text-left py-2 px-3 pb-3">Sales Rep</th>
-              <th class="text-left py-2 px-3 pb-3">Blocker</th>
             </tr>
           </thead>
-          <tbody>
-            <tr class="row-red border-b border-gray-800/50 transition-colors">
-              <td class="py-2.5 px-3 font-medium text-white">Gabriela Morales</td>
-              <td class="py-2.5 px-3"><span class="text-xs bg-purple-900/40 text-purple-300 border border-purple-800/50 px-2 py-0.5 rounded-full font-medium">Permitting</span></td>
-              <td class="py-2.5 px-3 text-center"><span class="text-red-400 font-bold">14d</span></td>
-              <td class="py-2.5 px-3 text-gray-300">FL</td>
-              <td class="py-2.5 px-3 text-gray-400 text-xs">9.6 kW</td>
-              <td class="py-2.5 px-3 text-gray-300">D. Reyes</td>
-              <td class="py-2.5 px-3 text-xs text-gray-400">AHJ back-log</td>
-            </tr>
-            <tr class="row-red border-b border-gray-800/50 transition-colors">
-              <td class="py-2.5 px-3 font-medium text-white">Thomas & Sarah Whitfield</td>
-              <td class="py-2.5 px-3"><span class="text-xs bg-blue-900/40 text-blue-300 border border-blue-800/50 px-2 py-0.5 rounded-full font-medium">ICA Review</span></td>
-              <td class="py-2.5 px-3 text-center"><span class="text-red-400 font-bold">11d</span></td>
-              <td class="py-2.5 px-3 text-gray-300">NC</td>
-              <td class="py-2.5 px-3 text-gray-400 text-xs">13.2 kW</td>
-              <td class="py-2.5 px-3 text-gray-300">M. Chen</td>
-              <td class="py-2.5 px-3 text-xs text-gray-400">Duke Energy queue</td>
-            </tr>
-            <tr class="row-red border-b border-gray-800/50 transition-colors">
-              <td class="py-2.5 px-3 font-medium text-white">Randall Okafor</td>
-              <td class="py-2.5 px-3"><span class="text-xs bg-orange-900/40 text-orange-300 border border-orange-800/50 px-2 py-0.5 rounded-full font-medium">Final Inspection</span></td>
-              <td class="py-2.5 px-3 text-center"><span class="text-red-400 font-bold">9d</span></td>
-              <td class="py-2.5 px-3 text-gray-300">GA</td>
-              <td class="py-2.5 px-3 text-gray-400 text-xs">7.8 kW</td>
-              <td class="py-2.5 px-3 text-gray-300">A. Williams</td>
-              <td class="py-2.5 px-3 text-xs text-gray-400">Inspector avail.</td>
-            </tr>
-            <tr class="row-red border-b border-gray-800/50 transition-colors">
-              <td class="py-2.5 px-3 font-medium text-white">Brittany Nguyen</td>
-              <td class="py-2.5 px-3"><span class="text-xs bg-teal-900/40 text-teal-300 border border-teal-800/50 px-2 py-0.5 rounded-full font-medium">Utility Interconnect</span></td>
-              <td class="py-2.5 px-3 text-center"><span class="text-red-400 font-bold">8d</span></td>
-              <td class="py-2.5 px-3 text-gray-300">SC</td>
-              <td class="py-2.5 px-3 text-gray-400 text-xs">11.4 kW</td>
-              <td class="py-2.5 px-3 text-gray-300">J. Torres</td>
-              <td class="py-2.5 px-3 text-xs text-gray-400">Dominion backlog</td>
-            </tr>
-            <tr class="row-yellow border-b border-gray-800/50 transition-colors">
-              <td class="py-2.5 px-3 font-medium text-white">Clifton & Mae Dupont</td>
-              <td class="py-2.5 px-3"><span class="text-xs bg-purple-900/40 text-purple-300 border border-purple-800/50 px-2 py-0.5 rounded-full font-medium">Permitting</span></td>
-              <td class="py-2.5 px-3 text-center"><span class="text-yellow-400 font-bold">6d</span></td>
-              <td class="py-2.5 px-3 text-gray-300">LA</td>
-              <td class="py-2.5 px-3 text-gray-400 text-xs">8.1 kW</td>
-              <td class="py-2.5 px-3 text-gray-300">D. Reyes</td>
-              <td class="py-2.5 px-3 text-xs text-gray-400">Missing HOA letter</td>
-            </tr>
-            <tr class="row-yellow border-b border-gray-800/50 transition-colors">
-              <td class="py-2.5 px-3 font-medium text-white">Marcus Johansson</td>
-              <td class="py-2.5 px-3"><span class="text-xs bg-red-900/40 text-red-300 border border-red-800/50 px-2 py-0.5 rounded-full font-medium">Structural Eng.</span></td>
-              <td class="py-2.5 px-3 text-center"><span class="text-yellow-400 font-bold">5d</span></td>
-              <td class="py-2.5 px-3 text-gray-300">TX</td>
-              <td class="py-2.5 px-3 text-gray-400 text-xs">16.8 kW</td>
-              <td class="py-2.5 px-3 text-gray-300">K. Shah</td>
-              <td class="py-2.5 px-3 text-xs text-gray-400">Engineer revision</td>
-            </tr>
-            <tr class="row-yellow border-b border-gray-800/50 transition-colors">
-              <td class="py-2.5 px-3 font-medium text-white">Patricia Eastwood</td>
-              <td class="py-2.5 px-3"><span class="text-xs bg-blue-900/40 text-blue-300 border border-blue-800/50 px-2 py-0.5 rounded-full font-medium">ICA Review</span></td>
-              <td class="py-2.5 px-3 text-center"><span class="text-yellow-400 font-bold">4d</span></td>
-              <td class="py-2.5 px-3 text-gray-300">NC</td>
-              <td class="py-2.5 px-3 text-gray-400 text-xs">10.0 kW</td>
-              <td class="py-2.5 px-3 text-gray-300">M. Chen</td>
-              <td class="py-2.5 px-3 text-xs text-gray-400">Awaiting signature</td>
-            </tr>
-            <tr class="row-yellow border-b border-gray-800/50 transition-colors">
-              <td class="py-2.5 px-3 font-medium text-white">DeShawn & Lakeisha Brooks</td>
-              <td class="py-2.5 px-3"><span class="text-xs bg-orange-900/40 text-orange-300 border border-orange-800/50 px-2 py-0.5 rounded-full font-medium">Final Inspection</span></td>
-              <td class="py-2.5 px-3 text-center"><span class="text-yellow-400 font-bold">3d</span></td>
-              <td class="py-2.5 px-3 text-gray-300">FL</td>
-              <td class="py-2.5 px-3 text-gray-400 text-xs">12.6 kW</td>
-              <td class="py-2.5 px-3 text-gray-300">A. Williams</td>
-              <td class="py-2.5 px-3 text-xs text-gray-400">Rescheduled 2x</td>
-            </tr>
-            <tr class="row-green transition-colors">
-              <td class="py-2.5 px-3 font-medium text-white">Yvette Carmichael</td>
-              <td class="py-2.5 px-3"><span class="text-xs bg-teal-900/40 text-teal-300 border border-teal-800/50 px-2 py-0.5 rounded-full font-medium">PTO Application</span></td>
-              <td class="py-2.5 px-3 text-center"><span class="text-green-400 font-bold">2d</span></td>
-              <td class="py-2.5 px-3 text-gray-300">SC</td>
-              <td class="py-2.5 px-3 text-gray-400 text-xs">9.2 kW</td>
-              <td class="py-2.5 px-3 text-gray-300">J. Torres</td>
-              <td class="py-2.5 px-3 text-xs text-gray-400">Utility processing</td>
+          <tbody id="stalled-projects-tbody">
+            <!-- Populated by loadDashboardData() -->
+            <tr>
+              <td colspan="5" class="py-8 text-center text-gray-500 text-xs">
+                <div class="loading-shimmer inline-block px-20 py-2">Loading stalled projects...</div>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -387,10 +338,8 @@
           <span class="text-lg">📊</span>
           <h2 class="text-sm font-semibold text-white">Pipeline by State</h2>
         </div>
-        <div class="flex items-center gap-2 text-xs text-gray-500">
-          <span>147 total active jobs</span>
-          <span>·</span>
-          <span>6 markets</span>
+        <div id="pipeline-subtitle" class="flex items-center gap-2 text-xs text-gray-500">
+          <span class="loading-shimmer px-10 py-1">Loading...</span>
         </div>
       </div>
 
@@ -401,123 +350,11 @@
           <canvas id="pipelineChart"></canvas>
         </div>
 
-        <!-- State Stats Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-
-          <div class="stat-card">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-blue-400">FL</span>
-              <span class="text-xs text-gray-500">Florida</span>
-            </div>
-            <div class="text-2xl font-bold text-white">48</div>
-            <div class="text-xs text-gray-400 mt-1">Active jobs</div>
-            <div class="mt-2 pt-2 border-t border-gray-700/50">
-              <div class="flex justify-between text-xs">
-                <span class="text-gray-500">Avg margin</span>
-                <span class="text-green-400 font-semibold">33.1%</span>
-              </div>
-              <div class="flex justify-between text-xs mt-1">
-                <span class="text-gray-500">Avg kW</span>
-                <span class="text-gray-300">10.2</span>
-              </div>
-            </div>
+        <!-- State Stats Grid — populated dynamically -->
+        <div id="pipeline-state-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div class="stat-card col-span-2 sm:col-span-3 flex items-center justify-center py-8">
+            <span class="text-gray-500 text-xs loading-shimmer px-20 py-2">Loading state data...</span>
           </div>
-
-          <div class="stat-card">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-indigo-400">NC</span>
-              <span class="text-xs text-gray-500">N. Carolina</span>
-            </div>
-            <div class="text-2xl font-bold text-white">31</div>
-            <div class="text-xs text-gray-400 mt-1">Active jobs</div>
-            <div class="mt-2 pt-2 border-t border-gray-700/50">
-              <div class="flex justify-between text-xs">
-                <span class="text-gray-500">Avg margin</span>
-                <span class="text-green-400 font-semibold">28.7%</span>
-              </div>
-              <div class="flex justify-between text-xs mt-1">
-                <span class="text-gray-500">Avg kW</span>
-                <span class="text-gray-300">9.1</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-cyan-400">SC</span>
-              <span class="text-xs text-gray-500">S. Carolina</span>
-            </div>
-            <div class="text-2xl font-bold text-white">24</div>
-            <div class="text-xs text-gray-400 mt-1">Active jobs</div>
-            <div class="mt-2 pt-2 border-t border-gray-700/50">
-              <div class="flex justify-between text-xs">
-                <span class="text-gray-500">Avg margin</span>
-                <span class="text-green-400 font-semibold">30.4%</span>
-              </div>
-              <div class="flex justify-between text-xs mt-1">
-                <span class="text-gray-500">Avg kW</span>
-                <span class="text-gray-300">8.8</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-purple-400">LA</span>
-              <span class="text-xs text-gray-500">Louisiana</span>
-            </div>
-            <div class="text-2xl font-bold text-white">18</div>
-            <div class="text-xs text-gray-400 mt-1">Active jobs</div>
-            <div class="mt-2 pt-2 border-t border-gray-700/50">
-              <div class="flex justify-between text-xs">
-                <span class="text-gray-500">Avg margin</span>
-                <span class="text-yellow-400 font-semibold">26.9%</span>
-              </div>
-              <div class="flex justify-between text-xs mt-1">
-                <span class="text-gray-500">Avg kW</span>
-                <span class="text-gray-300">8.3</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-emerald-400">GA</span>
-              <span class="text-xs text-gray-500">Georgia</span>
-            </div>
-            <div class="text-2xl font-bold text-white">16</div>
-            <div class="text-xs text-gray-400 mt-1">Active jobs</div>
-            <div class="mt-2 pt-2 border-t border-gray-700/50">
-              <div class="flex justify-between text-xs">
-                <span class="text-gray-500">Avg margin</span>
-                <span class="text-green-400 font-semibold">29.5%</span>
-              </div>
-              <div class="flex justify-between text-xs mt-1">
-                <span class="text-gray-500">Avg kW</span>
-                <span class="text-gray-300">9.6</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-orange-400">TX</span>
-              <span class="text-xs text-gray-500">Texas</span>
-            </div>
-            <div class="text-2xl font-bold text-white">10</div>
-            <div class="text-xs text-gray-400 mt-1">Active jobs</div>
-            <div class="mt-2 pt-2 border-t border-gray-700/50">
-              <div class="flex justify-between text-xs">
-                <span class="text-gray-500">Avg margin</span>
-                <span class="text-green-400 font-semibold">34.8%</span>
-              </div>
-              <div class="flex justify-between text-xs mt-1">
-                <span class="text-gray-500">Avg kW</span>
-                <span class="text-gray-300">14.1</span>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
     </div>
@@ -533,7 +370,7 @@
   </footer>
 
   <script>
-    // Clock & timestamps
+    // ─── Clock & timestamps ───────────────────────────────────────────────────
     function pad(n) { return String(n).padStart(2, '0'); }
 
     function updateClock() {
@@ -565,120 +402,455 @@
       document.getElementById('footerDate').textContent = `© ${now.getFullYear()} All rights reserved`;
     }
 
-    function refreshDashboard() {
-      setLastUpdated();
-    }
-
     updateClock();
-    setLastUpdated();
     setFooterDate();
     setInterval(updateClock, 1000);
 
-    // Chart.js — Pipeline by State
-    const ctx = document.getElementById('pipelineChart').getContext('2d');
+    // ─── Glide API config ─────────────────────────────────────────────────────
+    const GLIDE_TOKEN  = '111563eb-e5da-4edd-9c05-ebc1211c9c67';
+    const GLIDE_APP_ID = 'xdIJc5iKeasPL3TQe0Pn';
+    const GLIDE_TABLE  = 'native-table-slnGZlKQWqYv6en1oee1';
+    const GLIDE_ENDPOINT = 'https://api.glideapp.io/api/function/queryTables';
 
-    const states = ['FL', 'NC', 'SC', 'LA', 'GA', 'TX'];
-    const jobs   = [48, 31, 24, 18, 16, 10];
-    const margin = [33.1, 28.7, 30.4, 26.9, 29.5, 34.8];
+    // Column key map
+    const C = {
+      projectStatus:         '5sYzg',
+      installationDateFinal: '0EPVw',
+      soldDate:              'AsyNi',
+      state:                 'fPi46',
+      salesRep:              'gNuys',
+      customerFirstName:     'JBtiy',
+      customerLastName:      'TTYBa',
+      enteredStageDate:      'xxdOK',
+      scrubStatus:           'cBYm2',
+      siteSurveyStatus:      'jeglq',
+      engineeringStatus:     'WVcTG',
+      permitStatus:          'ad4dF',
+      icaStatus:             'e6Ssi',
+      installationStatus:    '5pV7i',
+      inspectionStatus:      'MXetz',
+      ptoStatus:             'mUqWg',
+      fundingStatus:         'WBuby',
+    };
 
-    const stateColors = [
-      'rgba(59,130,246,0.85)',   // FL blue
-      'rgba(99,102,241,0.85)',   // NC indigo
-      'rgba(6,182,212,0.85)',    // SC cyan
-      'rgba(168,85,247,0.85)',   // LA purple
-      'rgba(16,185,129,0.85)',   // GA emerald
-      'rgba(249,115,22,0.85)',   // TX orange
-    ];
+    // ─── Fetch all rows (handles pagination) ─────────────────────────────────
+    async function fetchAllRows() {
+      let rows = [];
+      let cursor = undefined;
 
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: states,
-        datasets: [
-          {
-            label: 'Active Jobs',
-            data: jobs,
-            backgroundColor: stateColors,
-            borderColor: stateColors.map(c => c.replace('0.85','1')),
-            borderWidth: 1,
-            borderRadius: 6,
-            yAxisID: 'y',
+      while (true) {
+        const body = {
+          appID: GLIDE_APP_ID,
+          queries: [{
+            tableName: GLIDE_TABLE,
+            ...(cursor ? { startAt: cursor } : {}),
+          }],
+        };
+
+        const resp = await fetch(GLIDE_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${GLIDE_TOKEN}`,
+            'Content-Type': 'application/json',
           },
-          {
-            label: 'Avg Margin %',
-            data: margin,
-            type: 'line',
-            borderColor: 'rgba(250,204,21,0.8)',
-            backgroundColor: 'rgba(250,204,21,0.08)',
-            pointBackgroundColor: 'rgba(250,204,21,1)',
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            borderWidth: 2,
-            tension: 0.35,
-            fill: false,
-            yAxisID: 'y2',
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: {
-            labels: {
-              color: '#9ca3af',
-              font: { size: 11, family: 'Inter' },
-              boxWidth: 12,
-              padding: 16,
-            }
-          },
-          tooltip: {
-            backgroundColor: '#1c2133',
-            borderColor: '#2a3550',
-            borderWidth: 1,
-            titleColor: '#e5e7eb',
-            bodyColor: '#9ca3af',
-            padding: 10,
-            callbacks: {
-              label: function(context) {
-                if (context.dataset.label === 'Avg Margin %') {
-                  return `  Avg Margin: ${context.parsed.y}%`;
-                }
-                return `  Active Jobs: ${context.parsed.y}`;
-              }
-            }
-          }
-        },
-        scales: {
-          x: {
-            ticks: { color: '#9ca3af', font: { size: 12, weight: '600', family: 'Inter' } },
-            grid: { color: 'rgba(255,255,255,0.04)' },
-            border: { color: '#1e2535' },
-          },
-          y: {
-            position: 'left',
-            ticks: { color: '#6b7280', font: { size: 11, family: 'Inter' } },
-            grid: { color: 'rgba(255,255,255,0.05)' },
-            border: { color: '#1e2535' },
-            title: { display: true, text: 'Active Jobs', color: '#6b7280', font: { size: 10, family: 'Inter' } }
-          },
-          y2: {
-            position: 'right',
-            ticks: {
-              color: '#6b7280',
-              font: { size: 11, family: 'Inter' },
-              callback: v => v + '%'
-            },
-            grid: { drawOnChartArea: false },
-            border: { color: '#1e2535' },
-            title: { display: true, text: 'Margin %', color: '#6b7280', font: { size: 10, family: 'Inter' } },
-            min: 20,
-            max: 40,
-          }
+          body: JSON.stringify(body),
+        });
+
+        if (!resp.ok) {
+          throw new Error(`Glide API error: ${resp.status} ${resp.statusText}`);
+        }
+
+        const data = await resp.json();
+        const page = Array.isArray(data) ? data[0] : data;
+
+        if (page && Array.isArray(page.rows)) {
+          rows = rows.concat(page.rows);
+        }
+
+        if (page && page.next) {
+          cursor = page.next;
+        } else {
+          break;
         }
       }
-    });
+
+      return rows;
+    }
+
+    // ─── Week helpers ─────────────────────────────────────────────────────────
+    function getWeekBounds(offsetWeeks = 0) {
+      const now = new Date();
+      const day = now.getDay(); // 0=Sun … 6=Sat
+      const diffToMon = (day === 0 ? -6 : 1 - day);
+      const mon = new Date(now);
+      mon.setDate(now.getDate() + diffToMon + (offsetWeeks * 7));
+      mon.setHours(0, 0, 0, 0);
+      const sun = new Date(mon);
+      sun.setDate(mon.getDate() + 6);
+      sun.setHours(23, 59, 59, 999);
+      return { start: mon, end: sun };
+    }
+
+    function parseDate(val) {
+      if (!val) return null;
+      // Glide dates can be ISO strings or timestamps
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    function daysBetween(dateA, dateB) {
+      return Math.floor((dateB - dateA) / (1000 * 60 * 60 * 24));
+    }
+
+    // ─── Determine current stage from status fields ───────────────────────────
+    const STAGES = [
+      { name: 'Scrub',        key: C.scrubStatus },
+      { name: 'Site Survey',  key: C.siteSurveyStatus },
+      { name: 'Engineering',  key: C.engineeringStatus },
+      { name: 'Permitting',   key: C.permitStatus },
+      { name: 'ICA',          key: C.icaStatus },
+      { name: 'Installation', key: C.installationStatus },
+      { name: 'Inspection',   key: C.inspectionStatus },
+      { name: 'PTO',          key: C.ptoStatus },
+      { name: 'Funding',      key: C.fundingStatus },
+    ];
+
+    const STAGE_COLORS = {
+      'Scrub':        'bg-gray-800 text-gray-300 border-gray-700',
+      'Site Survey':  'bg-blue-900/40 text-blue-300 border-blue-800/50',
+      'Engineering':  'bg-red-900/40 text-red-300 border-red-800/50',
+      'Permitting':   'bg-purple-900/40 text-purple-300 border-purple-800/50',
+      'ICA':          'bg-blue-900/40 text-blue-300 border-blue-800/50',
+      'Installation': 'bg-green-900/40 text-green-300 border-green-800/50',
+      'Inspection':   'bg-orange-900/40 text-orange-300 border-orange-800/50',
+      'PTO':          'bg-teal-900/40 text-teal-300 border-teal-800/50',
+      'Funding':      'bg-yellow-900/40 text-yellow-300 border-yellow-800/50',
+      'Unknown':      'bg-gray-800/40 text-gray-400 border-gray-700',
+    };
+
+    function getCurrentStage(row) {
+      // Walk stages in order; the current stage is the first incomplete one
+      for (const stage of STAGES) {
+        const val = (row[stage.key] || '').toString().toLowerCase().trim();
+        if (val && val !== 'complete' && val !== 'completed') {
+          return stage.name;
+        }
+      }
+      // Check if any stage has a value at all (even complete)
+      for (const stage of STAGES) {
+        if (row[stage.key]) return 'Funding'; // All done
+      }
+      return 'Unknown';
+    }
+
+    function isActive(row) {
+      const status = (row[C.projectStatus] || '').toString().trim().toLowerCase();
+      return status !== 'cancelled' && status !== 'canceled' && status !== 'complete' && status !== 'completed';
+    }
+
+    // ─── Chart instance ───────────────────────────────────────────────────────
+    let pipelineChartInstance = null;
+
+    function buildChart(labels, values) {
+      const ctx = document.getElementById('pipelineChart').getContext('2d');
+
+      const palette = [
+        'rgba(59,130,246,0.85)',   // blue
+        'rgba(99,102,241,0.85)',   // indigo
+        'rgba(6,182,212,0.85)',    // cyan
+        'rgba(168,85,247,0.85)',   // purple
+        'rgba(16,185,129,0.85)',   // emerald
+        'rgba(249,115,22,0.85)',   // orange
+        'rgba(236,72,153,0.85)',   // pink
+        'rgba(234,179,8,0.85)',    // yellow
+        'rgba(239,68,68,0.85)',    // red
+        'rgba(20,184,166,0.85)',   // teal
+      ];
+
+      const colors = labels.map((_, i) => palette[i % palette.length]);
+
+      if (pipelineChartInstance) {
+        pipelineChartInstance.destroy();
+      }
+
+      pipelineChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Active Jobs',
+            data: values,
+            backgroundColor: colors,
+            borderColor: colors.map(c => c.replace('0.85','1')),
+            borderWidth: 1,
+            borderRadius: 6,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              labels: {
+                color: '#9ca3af',
+                font: { size: 11, family: 'Inter' },
+                boxWidth: 12,
+                padding: 16,
+              }
+            },
+            tooltip: {
+              backgroundColor: '#1c2133',
+              borderColor: '#2a3550',
+              borderWidth: 1,
+              titleColor: '#e5e7eb',
+              bodyColor: '#9ca3af',
+              padding: 10,
+              callbacks: {
+                label: ctx => `  Active Jobs: ${ctx.parsed.y}`,
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#9ca3af', font: { size: 12, weight: '600', family: 'Inter' } },
+              grid: { color: 'rgba(255,255,255,0.04)' },
+              border: { color: '#1e2535' },
+            },
+            y: {
+              ticks: { color: '#6b7280', font: { size: 11, family: 'Inter' } },
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              border: { color: '#1e2535' },
+              title: { display: true, text: 'Active Jobs', color: '#6b7280', font: { size: 10, family: 'Inter' } },
+              beginAtZero: true,
+            }
+          }
+        }
+      });
+    }
+
+    // ─── Update DOM helpers ───────────────────────────────────────────────────
+    function setKpi(id, value, subId, subText, subClass) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = value;
+        el.classList.remove('loading-shimmer');
+      }
+      const sub = document.getElementById(subId);
+      if (sub) {
+        sub.textContent = subText;
+        sub.className = `text-xs mt-1 ${subClass || 'text-gray-400'}`;
+      }
+    }
+
+    function buildStalledTable(rows) {
+      const tbody = document.getElementById('stalled-projects-tbody');
+      if (!tbody) return;
+
+      if (!rows || rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-gray-500 text-xs">No stalled projects found</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = rows.map(({ row, daysInStage }) => {
+        const firstName = (row[C.customerFirstName] || '').trim();
+        const lastName  = (row[C.customerLastName]  || '').trim();
+        const name      = [firstName, lastName].filter(Boolean).join(' ') || 'Unknown';
+        const stage     = getCurrentStage(row);
+        const state     = (row[C.state]    || '—').trim();
+        const rep       = (row[C.salesRep] || '—').trim();
+
+        const rowClass    = daysInStage > 14 ? 'row-red' : (daysInStage >= 7 ? 'row-yellow' : '');
+        const daysClass   = daysInStage > 14 ? 'text-red-400 font-bold' : (daysInStage >= 7 ? 'text-yellow-400 font-bold' : 'text-gray-300');
+        const stageColors = STAGE_COLORS[stage] || STAGE_COLORS['Unknown'];
+
+        return `
+          <tr class="${rowClass} border-b border-gray-800/50 transition-colors">
+            <td class="py-2.5 px-3 font-medium text-white">${escHtml(name)}</td>
+            <td class="py-2.5 px-3">
+              <span class="text-xs ${stageColors} border px-2 py-0.5 rounded-full font-medium">${escHtml(stage)}</span>
+            </td>
+            <td class="py-2.5 px-3 text-center">
+              <span class="${daysClass}">${daysInStage}d</span>
+            </td>
+            <td class="py-2.5 px-3 text-gray-300">${escHtml(state)}</td>
+            <td class="py-2.5 px-3 text-gray-300">${escHtml(rep)}</td>
+          </tr>`;
+      }).join('');
+    }
+
+    function buildStateGrid(stateMap) {
+      const grid = document.getElementById('pipeline-state-grid');
+      if (!grid) return;
+
+      const stateColorMap = {
+        FL: 'text-blue-400',
+        NC: 'text-indigo-400',
+        SC: 'text-cyan-400',
+        LA: 'text-purple-400',
+        GA: 'text-emerald-400',
+        TX: 'text-orange-400',
+      };
+
+      const sorted = Object.entries(stateMap).sort((a, b) => b[1] - a[1]);
+
+      if (sorted.length === 0) {
+        grid.innerHTML = `<div class="stat-card col-span-2 sm:col-span-3 flex items-center justify-center py-8"><span class="text-gray-500 text-xs">No state data available</span></div>`;
+        return;
+      }
+
+      grid.innerHTML = sorted.map(([state, count]) => {
+        const colorClass = stateColorMap[state] || 'text-gray-300';
+        return `
+          <div class="stat-card">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold ${colorClass}">${escHtml(state)}</span>
+            </div>
+            <div class="text-2xl font-bold text-white">${count}</div>
+            <div class="text-xs text-gray-400 mt-1">Active jobs</div>
+          </div>`;
+      }).join('');
+    }
+
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // ─── Main data loader ─────────────────────────────────────────────────────
+    async function loadDashboardData() {
+      const refreshBtn = document.getElementById('refresh-btn');
+      if (refreshBtn) refreshBtn.disabled = true;
+
+      document.getElementById('data-error-banner').style.display = 'none';
+
+      try {
+        const rows = await fetchAllRows();
+        const now  = new Date();
+
+        const thisWeek = getWeekBounds(0);
+        const nextWeek = getWeekBounds(1);
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+        let activeJobs       = 0;
+        let stalledCount     = 0;
+        let installsThisWeek = 0;
+        let installsNextWeek = 0;
+        let submissions7d    = 0;
+
+        const stateMap = {};
+        const stalledCandidates = [];
+
+        for (const row of rows) {
+          const active = isActive(row);
+
+          if (active) {
+            activeJobs++;
+
+            // Pipeline by state
+            const st = (row[C.state] || '').toString().trim().toUpperCase();
+            if (st) {
+              stateMap[st] = (stateMap[st] || 0) + 1;
+            }
+
+            // Stalled: days since enteredStageDate
+            const entered = parseDate(row[C.enteredStageDate]);
+            if (entered) {
+              const daysInStage = daysBetween(entered, now);
+              if (daysInStage >= 7) {
+                stalledCount++;
+              }
+              // Collect for stalled table (all active with date, sort by oldest)
+              stalledCandidates.push({ row, daysInStage, entered });
+            }
+          }
+
+          // Installs this week
+          const installDate = parseDate(row[C.installationDateFinal]);
+          if (installDate && installDate >= thisWeek.start && installDate <= thisWeek.end) {
+            installsThisWeek++;
+          }
+
+          // Installs next week
+          if (installDate && installDate >= nextWeek.start && installDate <= nextWeek.end) {
+            installsNextWeek++;
+          }
+
+          // New submissions (7d)
+          const soldDate = parseDate(row[C.soldDate]);
+          if (soldDate && soldDate >= sevenDaysAgo) {
+            submissions7d++;
+          }
+        }
+
+        // Sort stalled candidates by oldest first, take top 10
+        stalledCandidates.sort((a, b) => a.entered - b.entered);
+        const top10Stalled = stalledCandidates.slice(0, 10);
+
+        // ── Update KPIs ──
+        setKpi('kpi-active-jobs', activeJobs, 'kpi-active-jobs-sub', `${rows.length} total projects`, 'text-gray-400');
+        setKpi('kpi-stalled', stalledCount, 'kpi-stalled-sub', 'Active with stage > 7d', stalledCount > 0 ? 'text-red-400' : 'text-gray-400');
+        setKpi('kpi-installs-this-week', installsThisWeek, 'kpi-installs-this-week-sub', 'Current Mon–Sun', 'text-blue-400');
+        setKpi('kpi-installs-next-week', installsNextWeek, 'kpi-installs-next-week-sub', 'Scheduled', 'text-blue-400');
+        setKpi('kpi-submissions-7d', submissions7d, 'kpi-submissions-7d-sub', 'Last 7 days', submissions7d > 0 ? 'text-green-400' : 'text-gray-400');
+
+        // ── Stalled Projects table ──
+        buildStalledTable(top10Stalled);
+
+        // ── Pipeline by State ──
+        const stateSorted = Object.entries(stateMap).sort((a, b) => b[1] - a[1]);
+        const stateLabels = stateSorted.map(([s]) => s);
+        const stateValues = stateSorted.map(([, v]) => v);
+        const numMarkets  = stateLabels.length;
+
+        const subtitle = document.getElementById('pipeline-subtitle');
+        if (subtitle) {
+          subtitle.innerHTML = `<span>${activeJobs} total active jobs</span><span>·</span><span>${numMarkets} market${numMarkets !== 1 ? 's' : ''}</span>`;
+          subtitle.className = 'flex items-center gap-2 text-xs text-gray-500';
+        }
+
+        buildChart(stateLabels, stateValues);
+        buildStateGrid(stateMap);
+
+        // ── Timestamp ──
+        setLastUpdated();
+
+      } catch (err) {
+        console.error('Dashboard data load failed:', err);
+        const banner = document.getElementById('data-error-banner');
+        const msg    = document.getElementById('data-error-msg');
+        if (banner) banner.style.display = 'block';
+        if (msg)    msg.textContent = `Failed to load live data: ${err.message}`;
+
+        // Clear shimmer on KPIs, show error state
+        ['kpi-active-jobs','kpi-stalled','kpi-installs-this-week','kpi-installs-next-week','kpi-submissions-7d'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) { el.textContent = '—'; el.classList.remove('loading-shimmer'); }
+        });
+        ['kpi-active-jobs-sub','kpi-stalled-sub','kpi-installs-this-week-sub','kpi-installs-next-week-sub','kpi-submissions-7d-sub'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) { el.textContent = 'Data unavailable'; el.className = 'text-xs mt-1 text-red-400'; }
+        });
+
+        const tbody = document.getElementById('stalled-projects-tbody');
+        if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-red-400 text-xs">Failed to load project data</td></tr>`;
+
+        const subtitle = document.getElementById('pipeline-subtitle');
+        if (subtitle) subtitle.innerHTML = '<span class="text-red-400">Data unavailable</span>';
+      } finally {
+        if (refreshBtn) refreshBtn.disabled = false;
+      }
+    }
+
+    async function refreshDashboard() {
+      await loadDashboardData();
+    }
+
+    // ── Boot ──
+    loadDashboardData();
   </script>
 </body>
 </html>
