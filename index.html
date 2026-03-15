@@ -545,7 +545,7 @@
 
     function isActive(row) {
       const status = (row[C.projectStatus] || '').toString().trim().toLowerCase();
-      return status !== 'cancelled' && status !== 'canceled' && status !== 'complete' && status !== 'completed';
+      return status === 'active';
     }
 
     // ─── Chart instance ───────────────────────────────────────────────────────
