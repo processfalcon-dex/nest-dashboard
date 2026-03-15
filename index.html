@@ -545,7 +545,11 @@
 
     function isActive(row) {
       const status = (row[C.projectStatus] || '').toString().trim().toLowerCase();
-      return status === 'active';
+      if (status !== 'active') return false;
+      // Exclude special/batch projects
+      const special = row['wWhf7'];
+      if (special === true || special === 'true' || special === 1) return false;
+      return true;
     }
 
     // ─── Chart instance ───────────────────────────────────────────────────────
