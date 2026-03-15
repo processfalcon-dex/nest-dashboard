@@ -777,14 +777,25 @@
           }
         }
 
-        // ── Installs from Scheduled Work table ──────────────────────────────
+        // ── Installs from Scheduled Work table (active projects only) ─────────
         try {
+          // Build set of active project IDs from rows already loaded
+          const activeProjectIds = new Set();
+          for (const row of rows) {
+            if (isActive(row) && row['$rowID']) activeProjectIds.add(row['$rowID']);
+            // Also index by the Name/uniqueId field if present
+            if (isActive(row) && row['G3bUg']) activeProjectIds.add(row['G3bUg']);
+          }
+
           const swRows = await fetchAllRows('native-table-9DBHakVNiyCJ24SCuO9c');
           for (const sw of swRows) {
             const workType = (sw['ZOXBN'] || '').toString().trim();
             if (workType !== 'Installation') continue;
             const scheduledStart = parseDate(sw['3Df4p']);
             if (!scheduledStart) continue;
+            // Only count if linked project is active (Name field = projectId)
+            const projectId = (sw['Name'] || '').toString().trim();
+            if (projectId && !activeProjectIds.has(projectId)) continue;
             if (scheduledStart >= thisWeek.start && scheduledStart <= thisWeek.end) installsThisWeek++;
             if (scheduledStart >= nextWeek.start && scheduledStart <= nextWeek.end) installsNextWeek++;
           }
