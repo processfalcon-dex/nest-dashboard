@@ -48,6 +48,16 @@
     .row-red:hover    { background: rgba(239,68,68,0.12);  }
     .row-yellow:hover { background: rgba(234,179,8,0.12);  }
 
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.15s;
+    }
+    th.sortable:hover { color: #d1d5db; }
+    th.sortable.sort-active { color: #60a5fa; }
+    .sort-icon { margin-left: 4px; opacity: 0.5; font-style: normal; }
+    th.sort-active .sort-icon { opacity: 1; }
+
     .gmail-btn {
       background: rgba(59,130,246,0.12);
       color: #60a5fa;
@@ -181,17 +191,23 @@
     </div>
 
     <!-- KPI Strip -->
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 mt-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mt-6">
       <div class="stat-card">
         <div class="text-xs text-gray-500 mb-1">Active Jobs</div>
         <div id="kpi-active-jobs" class="text-2xl font-bold text-white loading-shimmer">000</div>
         <div id="kpi-active-jobs-sub" class="text-xs text-gray-500 mt-1">Loading live data...</div>
       </div>
       <div class="stat-card">
-        <div class="text-xs text-gray-500 mb-1">Stalled (7+ days)</div>
+        <div class="text-xs text-gray-500 mb-1">🔴 Overdue</div>
         <div id="kpi-stalled" class="text-2xl font-bold text-red-400 loading-shimmer">00</div>
         <div id="kpi-stalled-sub" class="text-xs text-gray-500 mt-1">Loading...</div>
       </div>
+      <div class="stat-card">
+        <div class="text-xs text-gray-500 mb-1">🟡 At Risk</div>
+        <div id="kpi-atrisk" class="text-2xl font-bold text-yellow-400 loading-shimmer">00</div>
+        <div id="kpi-atrisk-sub" class="text-xs text-gray-500 mt-1">Loading...</div>
+      </div>
+      
       <div class="stat-card">
         <div class="text-xs text-gray-500 mb-1">Avg System Size</div>
         <div class="text-2xl font-bold text-gray-500">N/A</div>
@@ -230,89 +246,96 @@
           <span class="text-lg">📧</span>
           <h2 class="text-sm font-semibold text-white">Priority Emails</h2>
         </div>
-        <span class="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full">5 unread</span>
+        <span class="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full">justin@epcsolar.com · live</span>
       </div>
       <div class="flex flex-col gap-3">
 
-        <!-- Email 1 -->
         <div class="flex flex-col gap-1.5 pb-3 border-b border-gray-800">
           <div class="flex items-start justify-between gap-2">
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-0.5">
                 <span class="badge-urgent text-xs font-semibold px-2 py-0.5 rounded-full">URGENT</span>
-                <span class="text-xs text-gray-500">9:14 AM</span>
+                <span class="text-xs text-gray-500">Tue, 17 Mar 2026</span>
               </div>
-              <div class="text-sm font-medium text-white truncate">RE: AHJ Rejection — Hillsborough Co. Permit #HPC-2024-8821</div>
-              <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">lisa.mcrae@hillsboroughcounty.org</span></div>
-              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">Your structural letter is missing the engineer stamp. Permit will expire in 72 hours if not resubmitted with corrected documents.</div>
+              <div class="text-sm font-medium text-white truncate">Solar</div>
+              <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">therese allen</span></div>
+              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">Checked with Charlotte County and no permit for installation of solar panels to our home has been initiated or approved.</div>
             </div>
           </div>
-          <a href="https://mail.google.com" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
+          <a href="https://mail.google.com/mail/u/0/#inbox/19cfe42253ed469b" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
         </div>
-
-        <!-- Email 2 -->
         <div class="flex flex-col gap-1.5 pb-3 border-b border-gray-800">
           <div class="flex items-start justify-between gap-2">
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-0.5">
                 <span class="badge-urgent text-xs font-semibold px-2 py-0.5 rounded-full">URGENT</span>
-                <span class="text-xs text-gray-500">8:47 AM</span>
+                <span class="text-xs text-gray-500">Tue, 17 Mar 2026</span>
               </div>
-              <div class="text-sm font-medium text-white truncate">ICA Deadline — Duke Energy Notice for Henderson, NC</div>
-              <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">interconnect@duke-energy.com</span></div>
-              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">ICA agreement for account #DE-9927-NC must be signed and returned by EOD Friday or application is voided. $450 re-filing fee applies.</div>
+              <div class="text-sm font-medium text-white truncate">Enerflo</div>
+              <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">Eric Ord</span></div>
+              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">Hey Justin, I know my team has been hitting you up - but I wanted to reach out to you personally. We want this to be a r</div>
             </div>
           </div>
-          <a href="https://mail.google.com" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
+          <a href="https://mail.google.com/mail/u/0/#inbox/19cfe12504bef793" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
         </div>
-
-        <!-- Email 3 -->
         <div class="flex flex-col gap-1.5 pb-3 border-b border-gray-800">
           <div class="flex items-start justify-between gap-2">
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-0.5">
-                <span class="badge-review text-xs font-semibold px-2 py-0.5 rounded-full">REVIEW</span>
-                <span class="text-xs text-gray-500">Yesterday</span>
+                <span class="badge-urgent text-xs font-semibold px-2 py-0.5 rounded-full">URGENT</span>
+                <span class="text-xs text-gray-500">Tue, 17 Mar 2026</span>
               </div>
-              <div class="text-sm font-medium text-white truncate">Change Order Approval Needed — Tran Residence (8.4 kW → 10.2 kW)</div>
-              <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">minh.tran@gmail.com</span></div>
-              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">Customer approved verbal upgrade. CO includes 4 additional panels + revised SOW. Needs signed CO before crew can be dispatched.</div>
+              <div class="text-sm font-medium text-white truncate">Re: 📅 Your EPC Solar Project Has Been Scheduled!</div>
+              <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">Esperanza Hurtado</span></div>
+              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">Thank you for the update. On Tue, Mar 17, 2026, 11:14 AM &lt;justin@epcsolar.com&gt; wrote: Hi There! We&#39;re excited </div>
             </div>
           </div>
-          <a href="https://mail.google.com" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
+          <a href="https://mail.google.com/mail/u/0/#inbox/19cfd54e2b9201a6" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
         </div>
-
-        <!-- Email 4 -->
         <div class="flex flex-col gap-1.5 pb-3 border-b border-gray-800">
           <div class="flex items-start justify-between gap-2">
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-0.5">
-                <span class="badge-review text-xs font-semibold px-2 py-0.5 rounded-full">REVIEW</span>
-                <span class="text-xs text-gray-500">Yesterday</span>
+                <span class="badge-urgent text-xs font-semibold px-2 py-0.5 rounded-full">URGENT</span>
+                <span class="text-xs text-gray-500">Tue, 17 Mar 2026</span>
               </div>
-              <div class="text-sm font-medium text-white truncate">Inspection Failed — Wrong Conduit Size, Beaufort County SC</div>
-              <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">inspections@beaufortcountysc.gov</span></div>
-              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">Final electrical inspection failed. Inspector noted 3/4" conduit used where 1" required per NEC 690.31. Re-inspection scheduling window opens Monday.</div>
+              <div class="text-sm font-medium text-white truncate">Re: Administrative Stipulation Cleared for Mary Patrica Byrne</div>
+              <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">Rachael Hansen</span></div>
+              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">@Justin Porter this job has NTP but martell never added to nest should we have someone reach out? On Mon, Mar 16, 2026 a</div>
             </div>
           </div>
-          <a href="https://mail.google.com" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
+          <a href="https://mail.google.com/mail/u/0/#inbox/19cfbc7762455b37" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
         </div>
-
-        <!-- Email 5 -->
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1.5 pb-3 border-b border-gray-800">
           <div class="flex items-start justify-between gap-2">
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-0.5">
-                <span class="badge-fyi text-xs font-semibold px-2 py-0.5 rounded-full">FYI</span>
-                <span class="text-xs text-gray-500">2 days ago</span>
+                <span class="badge-urgent text-xs font-semibold px-2 py-0.5 rounded-full">URGENT</span>
+                <span class="text-xs text-gray-500">Tue, 17 Mar 2026</span>
               </div>
-              <div class="text-sm font-medium text-white truncate">PTO Received — Williams Residence, Gainesville FL 🎉</div>
-              <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">pto@clarosenergy.com</span></div>
-              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">Permission to Operate granted for 11.2 kW system at 4421 NW 43rd St, Gainesville FL 32606. System is live. Please update CRM and trigger final invoice.</div>
+              <div class="text-sm font-medium text-white truncate">Re: 📅 Your EPC Solar Project Has Been Scheduled!</div>
+              <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">John Crittenden</span></div>
+              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">Ok, thank you. John Crittenden Palm Harbor, FL From: Justin Porter &lt;justin@epcsolar.com&gt; Sent: Monday, March 16, 2</div>
             </div>
           </div>
-          <a href="https://mail.google.com" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
+          <a href="https://mail.google.com/mail/u/0/#inbox/19cf94e9b935f2d9" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
         </div>
+        <div class="flex flex-col gap-1.5 ">
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-0.5">
+                <span class="badge-urgent text-xs font-semibold px-2 py-0.5 rounded-full">URGENT</span>
+                <span class="text-xs text-gray-500">Mon, 16 Mar 2026</span>
+              </div>
+              <div class="text-sm font-medium text-white truncate">Fwd: Invoice EPC2935 from EPC SOLAR & ELECTRICAL CONTRACTORS</div>
+              <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">Rachael Hansen</span></div>
+              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">---------- Forwarded message --------- From: Cassie Parsneau &lt;cparsneau@goodpwr.com&gt; Date: Mon, Mar 16, 2026 at 3:</div>
+            </div>
+          </div>
+          <a href="https://mail.google.com/mail/u/0/#inbox/19cf807b1d602859" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
+        </div>
+
+      
 
       </div>
     </div>
@@ -322,28 +345,29 @@
       <div class="flex items-center justify-between flex-wrap gap-2">
         <div class="flex items-center gap-2">
           <span class="text-lg">🚨</span>
-          <h2 class="text-sm font-semibold text-white">Stalled Projects</h2>
+          <h2 class="text-sm font-semibold text-white">Stalled Projects <span id="stalled-count" class="text-gray-500 font-normal text-xs ml-1"></span></h2>
         </div>
         <div class="flex items-center gap-3 text-xs">
-          <span class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-red-500 opacity-60"></span><span class="text-gray-400">&gt;14 days</span></span>
-          <span class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-yellow-400 opacity-60"></span><span class="text-gray-400">7–14 days</span></span>
+          <span class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-red-500 opacity-60"></span><span class="text-gray-400">Overdue (past SLA)</span></span>
+          <span class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-sm bg-yellow-400 opacity-60"></span><span class="text-gray-400">At Risk (&gt;75% SLA)</span></span>
         </div>
       </div>
-      <div class="overflow-x-auto -mx-1">
+      <div class="overflow-x-auto overflow-y-auto -mx-1" style="max-height: 520px;">
         <table class="w-full text-sm border-collapse">
           <thead>
-            <tr class="border-b border-gray-800">
-              <th class="text-left py-2 px-3 pb-3">Customer</th>
-              <th class="text-left py-2 px-3 pb-3">Stage</th>
-              <th class="text-center py-2 px-3 pb-3">Days in Stage</th>
-              <th class="text-left py-2 px-3 pb-3">State</th>
-              <th class="text-left py-2 px-3 pb-3">Sales Rep</th>
+            <tr class="border-b border-gray-800 sticky top-0 z-10" style="background:#161b27;" id="stalled-thead">
+              <th class="text-left py-2 px-3 pb-3 sortable" data-col="customer" onclick="sortStalledBy('customer')">Customer <i class="sort-icon">↕</i></th>
+              <th class="text-left py-2 px-3 pb-3 sortable" data-col="stage" onclick="sortStalledBy('stage')">Stage <i class="sort-icon">↕</i></th>
+              <th class="text-center py-2 px-3 pb-3 sortable" data-col="days" onclick="sortStalledBy('days')">Days / SLA <i class="sort-icon">↕</i></th>
+              <th class="text-center py-2 px-3 pb-3 sortable" data-col="status" onclick="sortStalledBy('status')">Status <i class="sort-icon">↕</i></th>
+              <th class="text-left py-2 px-3 pb-3 sortable" data-col="state" onclick="sortStalledBy('state')">State <i class="sort-icon">↕</i></th>
+              <th class="text-left py-2 px-3 pb-3 sortable" data-col="rep" onclick="sortStalledBy('rep')">Sales Rep <i class="sort-icon">↕</i></th>
             </tr>
           </thead>
           <tbody id="stalled-projects-tbody">
             <!-- Populated by loadDashboardData() -->
             <tr>
-              <td colspan="5" class="py-8 text-center text-gray-500 text-xs">
+              <td colspan="6" class="py-8 text-center text-gray-500 text-xs">
                 <div class="loading-shimmer inline-block px-20 py-2">Loading stalled projects...</div>
               </td>
             </tr>
@@ -446,29 +470,32 @@
 
     // ─── Glide API config ─────────────────────────────────────────────────────
     const GLIDE_TOKEN  = '111563eb-e5da-4edd-9c05-ebc1211c9c67';
-    const GLIDE_APP_ID = 'xdIJc5iKeasPL3TQe0Pn';
+    const GLIDE_APP_ID = 'Tc2JYiVU5TBvWf9VaZJs'; // EPC Solar PRODUCTION
     const GLIDE_TABLE  = 'native-table-slnGZlKQWqYv6en1oee1';
     const GLIDE_ENDPOINT = 'https://api.glideapp.io/api/function/queryTables';
 
     // Column key map
     const C = {
-      projectStatus:         '5sYzg',
-      installationDateFinal: '0EPVw',
-      soldDate:              'AsyNi',
-      state:                 'fPi46',
-      salesRep:              'gNuys',
-      customerFirstName:     'JBtiy',
-      customerLastName:      'TTYBa',
-      enteredStageDate:      'xxdOK',
-      scrubStatus:           'cBYm2',
-      siteSurveyStatus:      'jeglq',
-      engineeringStatus:     'WVcTG',
-      permitStatus:          'ad4dF',
-      icaStatus:             'e6Ssi',
-      installationStatus:    '5pV7i',
-      inspectionStatus:      'MXetz',
-      ptoStatus:             'mUqWg',
-      fundingStatus:         'WBuby',
+      projectStatus:            '5sYzg',
+      installationDateFinal:    '0EPVw',
+      soldDate:                 'AsyNi',
+      state:                    'fPi46',
+      salesRep:                 'yS9Rc',
+      customerFirstName:        'JBtiy',
+      customerLastName:         'TTYBa',
+      enteredStageDate:         'xxdOK',
+      scrubStatus:              'cBYm2',
+      siteSurveyStatus:         'jeglq',
+      engineeringStatus:        'WVcTG',
+      sowStatus:                'UdDmI',
+      permitStatus:             'ad4dF',
+      icaStatus:                'e6Ssi',
+      hoaStatus:                't2YDB',
+      preInstallReviewStatus:   'ybcLH',
+      installationStatus:       '5pV7i',
+      inspectionStatus:         'MXetz',
+      ptoStatus:                'mUqWg',
+      fundingStatus:            'WBuby',
     };
 
     // ─── Fetch all rows (handles pagination) ─────────────────────────────────
@@ -540,17 +567,63 @@
       return Math.floor((dateB - dateA) / (1000 * 60 * 60 * 24));
     }
 
+    // Business days between two dates (Mon–Fri, no holiday logic)
+    function bizDaysBetween(dateA, dateB) {
+      let count = 0;
+      const d = new Date(dateA);
+      d.setHours(0,0,0,0);
+      const end = new Date(dateB);
+      end.setHours(0,0,0,0);
+      while (d < end) {
+        d.setDate(d.getDate() + 1);
+        const day = d.getDay();
+        if (day !== 0 && day !== 6) count++;
+      }
+      return count;
+    }
+
+    // Per-stage SLA in business days
+    const STAGE_SLA = {
+      'Scrub':              1,
+      'Site Survey':        3,
+      'Engineering':        2,
+      'SOW':                2,
+      'Permitting':         14,
+      'ICA':                14,
+      'HOA':                7,
+      'Pre Install Review': 1,
+      'Installation':       5,
+      'Inspection':         5,
+      'PTO':                14,
+      'Funding':            7,
+    };
+
+    // Returns: { sla, bizDaysInStage, status: 'overdue'|'at-risk'|'ok' }
+    // Anchored to enteredStageDate — how long has this project been in its current stage?
+    function getSlaStatus(stage, enteredDate, now) {
+      const sla = STAGE_SLA[stage];
+      if (!sla || !enteredDate) return { sla: null, bizDaysInStage: null, status: 'ok' };
+      const bizDays = bizDaysBetween(enteredDate, now);
+      let status = 'ok';
+      if (bizDays > sla) status = 'overdue';
+      else if (bizDays / sla >= 0.75) status = 'at-risk';
+      return { sla, bizDaysInStage: bizDays, status };
+    }
+
     // ─── Determine current stage from status fields ───────────────────────────
     const STAGES = [
-      { name: 'Scrub',        key: C.scrubStatus },
-      { name: 'Site Survey',  key: C.siteSurveyStatus },
-      { name: 'Engineering',  key: C.engineeringStatus },
-      { name: 'Permitting',   key: C.permitStatus },
-      { name: 'ICA',          key: C.icaStatus },
-      { name: 'Installation', key: C.installationStatus },
-      { name: 'Inspection',   key: C.inspectionStatus },
-      { name: 'PTO',          key: C.ptoStatus },
-      { name: 'Funding',      key: C.fundingStatus },
+      { name: 'Scrub',              key: C.scrubStatus },
+      { name: 'Site Survey',        key: C.siteSurveyStatus },
+      { name: 'Engineering',        key: C.engineeringStatus },
+      { name: 'SOW',                key: C.sowStatus },
+      { name: 'Permitting',         key: C.permitStatus },
+      { name: 'ICA',                key: C.icaStatus },
+      { name: 'HOA',                key: C.hoaStatus },
+      { name: 'Pre Install Review', key: C.preInstallReviewStatus },
+      { name: 'Installation',       key: C.installationStatus },
+      { name: 'Inspection',         key: C.inspectionStatus },
+      { name: 'PTO',                key: C.ptoStatus },
+      { name: 'Funding',            key: C.fundingStatus },
     ];
 
     const STAGE_COLORS = {
@@ -567,16 +640,18 @@
     };
 
     function getCurrentStage(row) {
-      // Walk stages in order; the current stage is the first incomplete one
+      // Walk stages in order; current stage = first one that is "Working" or "Not Ready"
+      // Status values: "Complete", "Working", "Not Ready", "N/A"
       for (const stage of STAGES) {
         const val = (row[stage.key] || '').toString().toLowerCase().trim();
-        if (val && val !== 'complete' && val !== 'completed') {
+        if (val === 'working' || val === 'not ready') {
           return stage.name;
         }
       }
-      // Check if any stage has a value at all (even complete)
-      for (const stage of STAGES) {
-        if (row[stage.key]) return 'Funding'; // All done
+      // If everything is complete or empty, fall through to last complete stage
+      for (let i = STAGES.length - 1; i >= 0; i--) {
+        const val = (row[STAGES[i].key] || '').toString().toLowerCase().trim();
+        if (val === 'complete' || val === 'completed') return STAGES[i].name;
       }
       return 'Unknown';
     }
@@ -685,26 +760,94 @@
       }
     }
 
+    // ─── Stalled table sort state ─────────────────────────────────────────────
+    let _stalledData   = [];   // full dataset stored after load
+    let _sortCol       = 'days';
+    let _sortDir       = 'desc'; // 'asc' | 'desc'
+
+    const STAGE_ORDER = [
+      'Scrub','Site Survey','Engineering','SOW','Permitting',
+      'ICA','HOA','Pre Install Review','Installation','Inspection','PTO','Funding','Unknown'
+    ];
+    const STATUS_ORDER = { 'overdue': 0, 'at-risk': 1, 'ok': 2 };
+
+    function sortStalledBy(col) {
+      if (_sortCol === col) {
+        _sortDir = _sortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        _sortCol = col;
+        _sortDir = col === 'days' ? 'desc' : 'asc'; // days default: most overdue first
+      }
+      // Update header highlight + arrow
+      document.querySelectorAll('#stalled-thead th').forEach(th => {
+        th.classList.remove('sort-active');
+        const icon = th.querySelector('.sort-icon');
+        if (icon) icon.textContent = '↕';
+      });
+      const activeTh = document.querySelector(`#stalled-thead th[data-col="${col}"]`);
+      if (activeTh) {
+        activeTh.classList.add('sort-active');
+        const icon = activeTh.querySelector('.sort-icon');
+        if (icon) icon.textContent = _sortDir === 'asc' ? '↑' : '↓';
+      }
+      buildStalledTable(_stalledData);
+    }
+
+    function getSortValue(item, col) {
+      const { row, bizDaysInStage, sla, status, stage } = item;
+      switch (col) {
+        case 'customer': {
+          const fn = (row[C.customerFirstName] || '').trim();
+          const ln = (row[C.customerLastName]  || '').trim();
+          return `${ln} ${fn}`.toLowerCase();
+        }
+        case 'stage':  return STAGE_ORDER.indexOf(stage);
+        case 'days':   return bizDaysInStage ?? -1;
+        case 'status': return STATUS_ORDER[status] ?? 99;
+        case 'state':  return (row[C.state] || '').trim().toLowerCase();
+        case 'rep':    return (row[C.salesRep] || '').trim().toLowerCase();
+        default:       return 0;
+      }
+    }
+
     function buildStalledTable(rows) {
       const tbody = document.getElementById('stalled-projects-tbody');
       if (!tbody) return;
 
+      // Persist data for re-sorting without re-fetching
+      if (rows !== _stalledData) _stalledData = rows;
+
       if (!rows || rows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-gray-500 text-xs">No stalled projects found</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500 text-xs">✅ No at-risk or overdue projects</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = rows.map(({ row, daysInStage }) => {
+      // Apply sort
+      const sorted = [...rows].sort((a, b) => {
+        const av = getSortValue(a, _sortCol);
+        const bv = getSortValue(b, _sortCol);
+        let cmp = 0;
+        if (typeof av === 'string') cmp = av.localeCompare(bv);
+        else cmp = av - bv;
+        return _sortDir === 'asc' ? cmp : -cmp;
+      });
+
+      tbody.innerHTML = sorted.map(({ row, bizDaysInStage, sla, status, stage }) => {
         const firstName = (row[C.customerFirstName] || '').trim();
         const lastName  = (row[C.customerLastName]  || '').trim();
         const name      = [firstName, lastName].filter(Boolean).join(' ') || 'Unknown';
-        const stage     = getCurrentStage(row);
         const state     = (row[C.state]    || '—').trim();
         const rep       = (row[C.salesRep] || '—').trim();
 
-        const rowClass    = daysInStage > 14 ? 'row-red' : (daysInStage >= 7 ? 'row-yellow' : '');
-        const daysClass   = daysInStage > 14 ? 'text-red-400 font-bold' : (daysInStage >= 7 ? 'text-yellow-400 font-bold' : 'text-gray-300');
+        const isOverdue = status === 'overdue';
+        const rowClass  = isOverdue ? 'row-red' : 'row-yellow';
+        const daysClass = isOverdue ? 'text-red-400 font-bold' : 'text-yellow-400 font-bold';
         const stageColors = STAGE_COLORS[stage] || STAGE_COLORS['Unknown'];
+
+        const slaLabel = sla ? `${bizDaysInStage}d / ${sla}d` : `${bizDaysInStage}d`;
+        const statusBadge = isOverdue
+          ? `<span class="text-xs font-bold px-2 py-0.5 rounded-full badge-urgent">OVERDUE</span>`
+          : `<span class="text-xs font-bold px-2 py-0.5 rounded-full badge-review">AT RISK</span>`;
 
         return `
           <tr class="${rowClass} border-b border-gray-800/50 transition-colors">
@@ -713,8 +856,9 @@
               <span class="text-xs ${stageColors} border px-2 py-0.5 rounded-full font-medium">${escHtml(stage)}</span>
             </td>
             <td class="py-2.5 px-3 text-center">
-              <span class="${daysClass}">${daysInStage}d</span>
+              <span class="${daysClass}">${escHtml(slaLabel)}</span>
             </td>
+            <td class="py-2.5 px-3 text-center">${statusBadge}</td>
             <td class="py-2.5 px-3 text-gray-300">${escHtml(state)}</td>
             <td class="py-2.5 px-3 text-gray-300">${escHtml(rep)}</td>
           </tr>`;
@@ -778,7 +922,8 @@
         const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
         let activeJobs       = 0;
-        let stalledCount     = 0;
+        let overdueCount     = 0;
+        let atRiskCount      = 0;
         let installsThisWeek = 0;
         let installsNextWeek = 0;
         let submissions7d    = 0;
@@ -798,15 +943,16 @@
               stateMap[st] = (stateMap[st] || 0) + 1;
             }
 
-            // Stalled: days since enteredStageDate
+            // SLA-aware stage status — biz days in current stage vs per-stage SLA
             const entered = parseDate(row[C.enteredStageDate]);
-            if (entered) {
-              const daysInStage = daysBetween(entered, now);
-              if (daysInStage >= 7) {
-                stalledCount++;
+            const stage   = getCurrentStage(row);
+            if (entered && stage && stage !== 'Unknown') {
+              const { sla, bizDaysInStage, status } = getSlaStatus(stage, entered, now);
+              if (status === 'overdue') overdueCount++;
+              else if (status === 'at-risk') atRiskCount++;
+              if (status === 'overdue' || status === 'at-risk') {
+                stalledCandidates.push({ row, bizDaysInStage, sla, status, stage, entered });
               }
-              // Collect for stalled table (all active with date, sort by oldest)
-              stalledCandidates.push({ row, daysInStage, entered });
             }
           }
 
@@ -845,18 +991,25 @@
           console.warn('Scheduled Work fetch failed:', e);
         }
 
-        // Sort stalled candidates by oldest first, take top 10
-        stalledCandidates.sort((a, b) => a.entered - b.entered);
-        const top10Stalled = stalledCandidates.slice(0, 10);
+        // Sort stalled candidates: overdue first, then by biz days desc
+        stalledCandidates.sort((a, b) => {
+          if (a.status === 'overdue' && b.status !== 'overdue') return -1;
+          if (b.status === 'overdue' && a.status !== 'overdue') return 1;
+          return b.bizDaysInStage - a.bizDaysInStage;
+        });
+        const top10Stalled = stalledCandidates; // show all at-risk/overdue
 
         // ── Update KPIs ──
         setKpi('kpi-active-jobs', activeJobs, 'kpi-active-jobs-sub', `${rows.length} total projects`, 'text-gray-400');
-        setKpi('kpi-stalled', stalledCount, 'kpi-stalled-sub', 'Active with stage > 7d', stalledCount > 0 ? 'text-red-400' : 'text-gray-400');
+        setKpi('kpi-stalled', overdueCount, 'kpi-stalled-sub', 'Past SLA deadline', overdueCount > 0 ? 'text-red-400' : 'text-gray-400');
+        setKpi('kpi-atrisk', atRiskCount, 'kpi-atrisk-sub', '>75% of SLA elapsed', atRiskCount > 0 ? 'text-yellow-400' : 'text-gray-400');
         setKpi('kpi-installs-this-week', installsThisWeek, 'kpi-installs-this-week-sub', 'Current Mon–Sun', 'text-blue-400');
         setKpi('kpi-installs-next-week', installsNextWeek, 'kpi-installs-next-week-sub', 'Scheduled', 'text-blue-400');
         setKpi('kpi-submissions-7d', submissions7d, 'kpi-submissions-7d-sub', 'Last 7 days', submissions7d > 0 ? 'text-green-400' : 'text-gray-400');
 
         // ── Stalled Projects table ──
+        const countEl = document.getElementById('stalled-count');
+        if (countEl) countEl.textContent = `(${top10Stalled.length})`;
         buildStalledTable(top10Stalled);
 
         // ── Pipeline by State ──
@@ -885,11 +1038,11 @@
         if (msg)    msg.textContent = `Failed to load live data: ${err.message}`;
 
         // Clear shimmer on KPIs, show error state
-        ['kpi-active-jobs','kpi-stalled','kpi-installs-this-week','kpi-installs-next-week','kpi-submissions-7d'].forEach(id => {
+        ['kpi-active-jobs','kpi-stalled','kpi-atrisk','kpi-installs-this-week','kpi-installs-next-week','kpi-submissions-7d'].forEach(id => {
           const el = document.getElementById(id);
           if (el) { el.textContent = '—'; el.classList.remove('loading-shimmer'); }
         });
-        ['kpi-active-jobs-sub','kpi-stalled-sub','kpi-installs-this-week-sub','kpi-installs-next-week-sub','kpi-submissions-7d-sub'].forEach(id => {
+        ['kpi-active-jobs-sub','kpi-stalled-sub','kpi-atrisk-sub','kpi-installs-this-week-sub','kpi-installs-next-week-sub','kpi-submissions-7d-sub'].forEach(id => {
           const el = document.getElementById(id);
           if (el) { el.textContent = 'Data unavailable'; el.className = 'text-xs mt-1 text-red-400'; }
         });
@@ -921,8 +1074,8 @@
       },
       {
         priority: 'high',
-        title: 'Define SLAs per pipeline stage',
-        desc: 'Set expected turnaround for each of the 13 stages (Scrub, SOW, Permitting, etc.)',
+        title: 'Wire "stage" + "Entered Stage Date" column keys',
+        desc: 'Confirm Glide column key IDs for "stage" and "Entered Stage Date" to activate SLA tracking',
         tag: 'Dashboard'
       },
       {
@@ -976,6 +1129,16 @@
     }
 
     renderActionItems();
+
+    // Set initial sort indicator (days desc = most overdue first)
+    (function() {
+      const th = document.querySelector('#stalled-thead th[data-col="days"]');
+      if (th) {
+        th.classList.add('sort-active');
+        const icon = th.querySelector('.sort-icon');
+        if (icon) icon.textContent = '↓';
+      }
+    })();
   </script>
 </body>
 </html>
