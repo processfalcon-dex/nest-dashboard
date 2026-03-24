@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nest Operations</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0f1117;
+      color: #e5e7eb;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .card {
+      background: #161b27;
+      border: 1px solid #1e2535;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      color: #9ca3af;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 14px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #f3f4f6;
+    }
+    .header .subtitle {
+      color: #6b7280;
+      font-size: 12px;
+      margin-top: 2px;
+    }
+    .refresh-btn {
+      background: rgba(59,130,246,0.12);
+      color: #60a5fa;
+      border: 1px solid rgba(59,130,246,0.25);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .refresh-btn:hover {
+      background: rgba(59,130,246,0.22);
+      border-color: rgba(59,130,246,0.5);
+      color: #93c5fd;
+    }
+
+    /* KPI row */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 900px) {
+      .kpi-row { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 500px) {
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    .stat-card {
+      background: #1c2133;
+      border: 1px solid #252e44;
+      border-radius: 10px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+    .stat-card .label {
+      color: #6b7280;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .stat-card .value {
+      font-size: 28px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+    .stat-green .value { color: #4ade80; }
+    .stat-red .value { color: #f87171; }
+    .stat-neutral .value { color: #e5e7eb; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      color: #6b7280;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid #1e2535;
+    }
+    td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(30,37,53,0.5);
+      font-size: 13px;
+      color: #d1d5db;
+    }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .row-red { background: rgba(239,68,68,0.06); }
+    .row-red:hover td { background: rgba(239,68,68,0.12) !important; }
+    .row-yellow { background: rgba(234,179,8,0.06); }
+    .row-yellow:hover td { background: rgba(234,179,8,0.12) !important; }
+
+    /* Pills / badges */
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin: 1px 2px;
+    }
+    .pill-red { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+    .pill-yellow { background: rgba(234,179,8,0.15); color: #facc15; border: 1px solid rgba(234,179,8,0.3); }
+    .pill-blue { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+
+    /* State row */
+    .state-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .state-chip {
+      background: #1c2133;
+      border: 1px solid #252e44;
+      border-radius: 8px;
+      padding: 10px 18px;
+      text-align: center;
+      min-width: 70px;
+    }
+    .state-chip .st { font-size: 13px; font-weight: 700; color: #e5e7eb; }
+    .state-chip .ct { font-size: 20px; font-weight: 700; color: #F5A623; margin-top: 2px; }
+
+    /* Collapsible */
+    .collapse-toggle {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .collapse-toggle .arrow {
+      display: inline-block;
+      transition: transform 0.2s;
+      font-size: 10px;
+      color: #6b7280;
+    }
+    .collapse-toggle.open .arrow { transform: rotate(90deg); }
+    .collapse-body { display: none; }
+    .collapse-body.open { display: block; }
+
+    /* Loading */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      color: #6b7280;
+    }
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid #252e44;
+      border-top-color: #60a5fa;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-msg { color: #f87171; font-size: 13px; padding: 16px; }
+
+    .pulse-dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      margin-right: 6px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a3550; border-radius: 4px; }
+
+    .chart-wrap { max-width: 100%; height: 260px; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <h1>🪺 Nest Operations</h1>
+      <div class="subtitle"><span class="pulse-dot"></span>Live pipeline data — <span id="timestamp">loading…</span></div>
+    </div>
+    <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
+  </div>
+
+  <!-- KPI Row -->
+  <div class="kpi-row" id="kpi-row">
+    <div class="stat-card" id="kpi-active"><div class="label">Active Projects</div><div class="value">—</div></div>
+    <div class="stat-card" id="kpi-hold"><div class="label">On Hold</div><div class="value">—</div></div>
+    <div class="stat-card" id="kpi-overdue"><div class="label">Overdue Actions</div><div class="value">—</div></div>
+    <div class="stat-card" id="kpi-alerts"><div class="label">Install Alerts</div><div class="value">—</div></div>
+    <div class="stat-card" id="kpi-service"><div class="label">Service Needed</div><div class="value">—</div></div>
+    <div class="stat-card" id="kpi-welcome"><div class="label">Welcome Calls Pending</div><div class="value">—</div></div>
+  </div>
+
+    <!-- Pipeline Funnel + Email side by side -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+  <div class="card">
+    <div class="card-title">Pipeline Funnel</div>
+    <div class="chart-wrap"><canvas id="funnelChart"></canvas></div>
+  </div>
+
+  <!-- Priority Emails (demo) -->
+  <div class="card">
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>📧 Priority Emails</span>
+      <span style="font-size:11px;color:#4b5563;background:#1f2937;padding:2px 10px;border-radius:20px;font-weight:500;">ops@mysolarnest.com · demo</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+
+      <div style="padding-bottom:14px;border-bottom:1px solid #1e2535;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;">URGENT</span>
+          <span style="font-size:11px;color:#6b7280;">Sat, 21 Mar 2026</span>
+        </div>
+        <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:2px;">Re: Permit Rejection — Maria Del Carmen Flores</div>
+        <div style="font-size:11px;color:#9ca3af;">From: <span style="color:#d1d5db;">Charlotte County Building Dept</span></div>
+        <div style="font-size:11px;color:#6b7280;margin-top:4px;">Application 2026-03211 has been rejected. Missing engineer stamp on structural letter. Please resubmit within 10 business days.</div>
+        <a href="#" style="display:inline-block;margin-top:8px;background:rgba(59,130,246,0.12);color:#60a5fa;border:1px solid rgba(59,130,246,0.25);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:500;text-decoration:none;">Open in Mail ↗</a>
+      </div>
+
+      <div style="padding-bottom:14px;border-bottom:1px solid #1e2535;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;">URGENT</span>
+          <span style="font-size:11px;color:#6b7280;">Sat, 21 Mar 2026</span>
+        </div>
+        <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:2px;">Complaint Submitted — Victor Villatoro</div>
+        <div style="font-size:11px;color:#9ca3af;">From: <span style="color:#d1d5db;">Sungage Financial</span></div>
+        <div style="font-size:11px;color:#6b7280;margin-top:4px;">Customer has filed a complaint regarding tree removal promise made at point of sale. Please respond within 48 hours to avoid escalation.</div>
+        <a href="#" style="display:inline-block;margin-top:8px;background:rgba(59,130,246,0.12);color:#60a5fa;border:1px solid rgba(59,130,246,0.25);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:500;text-decoration:none;">Open in Mail ↗</a>
+      </div>
+
+      <div style="padding-bottom:14px;border-bottom:1px solid #1e2535;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span style="background:rgba(234,179,8,0.15);color:#facc15;border:1px solid rgba(234,179,8,0.3);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;">REVIEW</span>
+          <span style="font-size:11px;color:#6b7280;">Fri, 20 Mar 2026</span>
+        </div>
+        <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:2px;">NTP Approved — Cesar Cordero (3 jobs)</div>
+        <div style="font-size:11px;color:#9ca3af;">From: <span style="color:#d1d5db;">LightReach Operations</span></div>
+        <div style="font-size:11px;color:#6b7280;margin-top:4px;">Stipulations cleared. All 3 Cordero accounts are approved for NTP. Electrical upgrade photos required within 30 days of install.</div>
+        <a href="#" style="display:inline-block;margin-top:8px;background:rgba(59,130,246,0.12);color:#60a5fa;border:1px solid rgba(59,130,246,0.25);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:500;text-decoration:none;">Open in Mail ↗</a>
+      </div>
+
+      <div style="padding-bottom:14px;border-bottom:1px solid #1e2535;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span style="background:rgba(234,179,8,0.15);color:#facc15;border:1px solid rgba(234,179,8,0.3);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;">REVIEW</span>
+          <span style="font-size:11px;color:#6b7280;">Fri, 20 Mar 2026</span>
+        </div>
+        <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:2px;">ICA Application — Duke Energy Progress Update</div>
+        <div style="font-size:11px;color:#9ca3af;">From: <span style="color:#d1d5db;">Duke Energy Interconnections</span></div>
+        <div style="font-size:11px;color:#6b7280;margin-top:4px;">Your interconnection application for 3 projects has moved to technical review. Estimated approval: 15 business days. Docket numbers enclosed.</div>
+        <a href="#" style="display:inline-block;margin-top:8px;background:rgba(59,130,246,0.12);color:#60a5fa;border:1px solid rgba(59,130,246,0.25);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:500;text-decoration:none;">Open in Mail ↗</a>
+      </div>
+
+      <div style="padding-bottom:14px;border-bottom:1px solid #1e2535;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span style="background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;">FYI</span>
+          <span style="font-size:11px;color:#6b7280;">Thu, 19 Mar 2026</span>
+        </div>
+        <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:2px;">PTO Granted — Rosa Munoz (New Bern, NC)</div>
+        <div style="font-size:11px;color:#9ca3af;">From: <span style="color:#d1d5db;">Duke Energy Progress</span></div>
+        <div style="font-size:11px;color:#6b7280;margin-top:4px;">Permission to Operate has been granted for the above-referenced solar installation. System may now be energized.</div>
+        <a href="#" style="display:inline-block;margin-top:8px;background:rgba(59,130,246,0.12);color:#60a5fa;border:1px solid rgba(59,130,246,0.25);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:500;text-decoration:none;">Open in Mail ↗</a>
+      </div>
+
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span style="background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;">FYI</span>
+          <span style="font-size:11px;color:#6b7280;">Thu, 19 Mar 2026</span>
+        </div>
+        <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:2px;">Welcome Call Completed — Eusebio Ordonez (Spanish)</div>
+        <div style="font-size:11px;color:#9ca3af;">From: <span style="color:#d1d5db;">Zoe Luna</span></div>
+        <div style="font-size:11px;color:#6b7280;margin-top:4px;">Welcome call completed and recorded. Customer confirmed install date and yellow packet location. Ready to submit stip to LR.</div>
+        <a href="#" style="display:inline-block;margin-top:8px;background:rgba(59,130,246,0.12);color:#60a5fa;border:1px solid rgba(59,130,246,0.25);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:500;text-decoration:none;">Open in Mail ↗</a>
+      </div>
+
+    </div>
+  </div>
+
+  </div><!-- end side-by-side grid -->
+
+  <!-- Overdue Actions (full width) -->
+  <div class="card">
+    <div class="card-title">Overdue Actions</div>
+    <div id="overdue-content"><div class="loading"><div class="spinner"></div>Loading…</div></div>
+  </div>
+
+  <!-- At-Risk Projects -->
+  <div class="card">
+    <div class="card-title">At-Risk Projects</div>
+    <div id="risk-content"><div class="loading"><div class="spinner"></div>Loading…</div></div>
+  </div>
+
+  <!-- Pipeline by Rep -->
+  <div class="card">
+    <div class="collapse-toggle open" onclick="toggleCollapse(this)">
+      <span class="arrow">▶</span>
+      <span class="card-title" style="margin-bottom:0">Pipeline by Rep</span>
+    </div>
+    <div class="collapse-body open" id="rep-content" style="margin-top:14px">
+      <div class="loading"><div class="spinner"></div>Loading…</div>
+    </div>
+  </div>
+
+  <!-- Pipeline by State -->
+  <div class="card">
+    <div class="card-title">Pipeline by State</div>
+    <div id="state-content"><div class="loading"><div class="spinner"></div>Loading…</div></div>
+  </div>
+
+  <!-- Recent Cancellations -->
+  <div class="card">
+    <div class="card-title">Recent Cancellations (Last 30 Days)</div>
+    <div id="cancel-content"><div class="loading"><div class="spinner"></div>Loading…</div></div>
+  </div>
+
+<script>
+// ── Field mapping ──
+const F = {
+  projectStatus: "5sYzg",
+  scrubStatus: "cBYm2",
+  siteSurveyStatus: "jeglq",
+  engineeringStatus: "WVcTG",
+  sowStatus: "UdDmI",
+  permitStatus: "ad4dF",
+  icaStatus: "e6Ssi",
+  preInstallReviewStatus: "ybcLH",
+  installationStatus: "5pV7i",
+  inspectionStatus: "MXetz",
+  ptoStatus: "mUqWg",
+  fundingStatus: "WBuby",
+  customerFirstName: "JBtiy",
+  customerLastName: "TTYBa",
+  salesRep: "gNuys",
+  dealerTeam: "6C9Gw",
+  state: "fPi46",
+  financeCompany: "G8eYI",
+  soldDate: "AsyNi",
+  installationDateFinal: "0EPVw",
+  projectCompleteDate: "B91wP",
+  holdDate: "WyvLJ",
+  holdReason: "haEbH",
+  cancelledDate: "X3lyX",
+  scrubActionDate: "kKZOV",
+  permitActionDate: "WOOCI",
+  icaActionDate: "nLoCJ",
+  installationActionDate: "tutKo",
+  inspectionActionDate: "MFgVG",
+  ptoActionDate: "KEkcp",
+  battery: "dO7FW",
+  ofPanels: "e39pM",
+  mpuRequired: "4OyVb",
+  installAlert: "3Oc9i",
+  inspectionFail: "8oX5l",
+  serviceNeeded: "ZtBCs",
+  highPriorityService: "pKgaF",
+  welcomeCall: "kIa1l",
+  discordChannel: "6TOaw",
+  uniqueId: "G3bUg",
+  enteredStageDate: "xxdOK",
+  roofBeingInstalled: "e7435"
+};
+
+const STAGES = [
+  "Scrub", "Site Survey", "Engineering", "SOW", "Permit",
+  "ICA", "Pre-Install Review", "Install", "Inspection", "PTO", "Funding"
+];
+
+const INACTIVE = ["Cancelled", "Complete", "On Hold"];
+
+const ACTION_DATE_FIELDS = [
+  { key: "scrubActionDate", label: "Scrub" },
+  { key: "permitActionDate", label: "Permit" },
+  { key: "icaActionDate", label: "ICA" },
+  { key: "installationActionDate", label: "Installation" },
+  { key: "inspectionActionDate", label: "Inspection" },
+  { key: "ptoActionDate", label: "PTO" }
+];
+
+// ── Helpers ──
+function g(row, key) { return row[F[key]]; }
+function name(row) {
+  const f = g(row, "customerFirstName") || "";
+  const l = g(row, "customerLastName") || "";
+  return (f + " " + l).trim() || "—";
+}
+function isTruthy(v) { return v === true || v === "true" || v === "Yes" || v === "yes" || v === 1; }
+function daysBetween(a, b) { return Math.floor((b - a) / 86400000); }
+function today() { const d = new Date(); d.setHours(0,0,0,0); return d; }
+function parseDate(v) { if (!v) return null; const d = new Date(v); return isNaN(d) ? null : d; }
+
+function isActive(row) {
+  const s = g(row, "projectStatus");
+  return s && !INACTIVE.includes(s);
+}
+
+function getOverdueAction(row) {
+  const t = today();
+  let worst = null;
+  for (const af of ACTION_DATE_FIELDS) {
+    const d = parseDate(g(row, af.key));
+    if (d && d < t) {
+      const over = daysBetween(d, t);
+      if (!worst || over > worst.over) worst = { label: af.label, date: d, over };
+    }
+  }
+  return worst;
+}
+
+function daysInStage(row) {
+  const d = parseDate(g(row, "enteredStageDate"));
+  if (!d) return null;
+  return daysBetween(d, today());
+}
+
+function fmtDate(d) {
+  if (!d) return "—";
+  if (typeof d === "string") d = new Date(d);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+// ── Chart ──
+let funnelChartInstance = null;
+
+function renderFunnel(rows) {
+  const counts = {};
+  STAGES.forEach(s => counts[s] = 0);
+  rows.filter(isActive).forEach(r => {
+    const s = g(r, "projectStatus");
+    if (s && counts.hasOwnProperty(s)) counts[s]++;
+  });
+
+  const ctx = document.getElementById("funnelChart").getContext("2d");
+  if (funnelChartInstance) funnelChartInstance.destroy();
+
+  funnelChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: STAGES,
+      datasets: [{
+        data: STAGES.map(s => counts[s]),
+        backgroundColor: "#F5A623",
+        borderRadius: 4,
+        barPercentage: 0.65
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          ticks: { color: "#6b7280", font: { size: 11 } },
+          grid: { color: "rgba(30,37,53,0.6)" }
+        },
+        y: {
+          ticks: { color: "#d1d5db", font: { size: 12 } },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+// ── KPI ──
+function renderKPI(rows) {
+  const active = rows.filter(isActive);
+  const onHold = rows.filter(r => g(r, "holdDate") && !g(r, "cancelledDate"));
+  const overdue = rows.filter(r => getOverdueAction(r) !== null);
+  const alerts = rows.filter(r => isTruthy(g(r, "installAlert")));
+  const service = rows.filter(r => isTruthy(g(r, "serviceNeeded")));
+  const welcomePending = active.filter(r => !isTruthy(g(r, "welcomeCall")));
+
+  const kpis = [
+    { id: "kpi-active", val: active.length, alert: false },
+    { id: "kpi-hold", val: onHold.length, alert: onHold.length > 0 },
+    { id: "kpi-overdue", val: overdue.length, alert: overdue.length > 0 },
+    { id: "kpi-alerts", val: alerts.length, alert: alerts.length > 0 },
+    { id: "kpi-service", val: service.length, alert: service.length > 0 },
+    { id: "kpi-welcome", val: welcomePending.length, alert: welcomePending.length > 0 }
+  ];
+
+  kpis.forEach(k => {
+    const el = document.getElementById(k.id);
+    el.querySelector(".value").textContent = k.val;
+    if (k.id === "kpi-active") {
+      el.className = "stat-card stat-neutral";
+    } else {
+      el.className = "stat-card " + (k.alert ? "stat-red" : "stat-green");
+    }
+  });
+}
+
+// ── Overdue Table ──
+function renderOverdue(rows) {
+  const el = document.getElementById("overdue-content");
+  const items = [];
+  rows.forEach(r => {
+    const o = getOverdueAction(r);
+    if (o) items.push({ row: r, ...o });
+  });
+  items.sort((a, b) => b.over - a.over);
+
+  if (!items.length) { el.innerHTML = '<div style="color:#6b7280;padding:10px;">No overdue actions.</div>'; return; }
+
+  let html = '<div style="overflow-x:auto"><table><thead><tr><th>Customer</th><th>Rep</th><th>Stage</th><th>Action</th><th>Action Date</th><th>Days Overdue</th></tr></thead><tbody>';
+  items.forEach(i => {
+    const cls = i.over > 7 ? "row-red" : "row-yellow";
+    html += `<tr class="${cls}">
+      <td>${name(i.row)}</td>
+      <td>${g(i.row,"salesRep")||"—"}</td>
+      <td>${g(i.row,"projectStatus")||"—"}</td>
+      <td>${i.label}</td>
+      <td>${fmtDate(i.date)}</td>
+      <td style="font-weight:600">${i.over}d</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+// ── At-Risk ──
+function renderRisk(rows) {
+  const el = document.getElementById("risk-content");
+  const items = rows.filter(r =>
+    isTruthy(g(r,"installAlert")) || isTruthy(g(r,"inspectionFail")) ||
+    isTruthy(g(r,"serviceNeeded")) || isTruthy(g(r,"highPriorityService"))
+  );
+
+  if (!items.length) { el.innerHTML = '<div style="color:#6b7280;padding:10px;">No at-risk projects.</div>'; return; }
+
+  let html = '<div style="overflow-x:auto"><table><thead><tr><th>Customer</th><th>Rep</th><th>Stage</th><th>Flags</th><th>Days in Stage</th></tr></thead><tbody>';
+  items.forEach(r => {
+    let flags = "";
+    if (isTruthy(g(r,"highPriorityService"))) flags += '<span class="pill pill-red">High Priority Service</span>';
+    if (isTruthy(g(r,"installAlert"))) flags += '<span class="pill pill-red">Install Alert</span>';
+    if (isTruthy(g(r,"inspectionFail"))) flags += '<span class="pill pill-yellow">Inspection Fail</span>';
+    if (isTruthy(g(r,"serviceNeeded"))) flags += '<span class="pill pill-blue">Service Needed</span>';
+    const dis = daysInStage(r);
+    html += `<tr>
+      <td>${name(r)}</td>
+      <td>${g(r,"salesRep")||"—"}</td>
+      <td>${g(r,"projectStatus")||"—"}</td>
+      <td>${flags}</td>
+      <td>${dis !== null ? dis + "d" : "—"}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+// ── Pipeline by Rep ──
+function renderByRep(rows) {
+  const el = document.getElementById("rep-content");
+  const reps = {};
+  rows.forEach(r => {
+    const rep = g(r,"salesRep") || "Unknown";
+    if (!reps[rep]) reps[rep] = { active: 0, hold: 0, overdue: 0, stageDays: [] };
+    if (isActive(r)) {
+      reps[rep].active++;
+      const d = daysInStage(r);
+      if (d !== null) reps[rep].stageDays.push(d);
+    }
+    if (g(r,"holdDate") && !g(r,"cancelledDate")) reps[rep].hold++;
+    if (getOverdueAction(r)) reps[rep].overdue++;
+  });
+
+  const sorted = Object.entries(reps).sort((a,b) => b[1].active - a[1].active);
+
+  let html = '<div style="overflow-x:auto"><table><thead><tr><th>Rep</th><th>Active</th><th>On Hold</th><th>Overdue</th><th>Avg Days in Stage</th></tr></thead><tbody>';
+  sorted.forEach(([rep, d]) => {
+    const avg = d.stageDays.length ? Math.round(d.stageDays.reduce((a,b)=>a+b,0)/d.stageDays.length) : "—";
+    html += `<tr>
+      <td style="font-weight:500">${rep}</td>
+      <td>${d.active}</td>
+      <td>${d.hold || "—"}</td>
+      <td>${d.overdue || "—"}</td>
+      <td>${avg}${typeof avg==="number" ? "d" : ""}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+// ── Pipeline by State ──
+function renderByState(rows) {
+  const el = document.getElementById("state-content");
+  const counts = {};
+  rows.filter(isActive).forEach(r => {
+    const st = g(r,"state") || "Other";
+    counts[st] = (counts[st]||0) + 1;
+  });
+
+  const priority = ["FL","NC","GA","SC","TX"];
+  const sorted = [];
+  priority.forEach(s => { if (counts[s]) { sorted.push([s, counts[s]]); delete counts[s]; } });
+  Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(e => sorted.push(e));
+
+  let html = '<div class="state-row">';
+  sorted.forEach(([st,ct]) => {
+    html += `<div class="state-chip"><div class="st">${st}</div><div class="ct">${ct}</div></div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ── Recent Cancellations ──
+function renderCancellations(rows) {
+  const el = document.getElementById("cancel-content");
+  const t = today();
+  const thirtyAgo = new Date(t); thirtyAgo.setDate(thirtyAgo.getDate() - 30);
+
+  const items = rows.filter(r => {
+    const cd = parseDate(g(r,"cancelledDate"));
+    return cd && cd >= thirtyAgo;
+  }).sort((a,b) => new Date(g(b,"cancelledDate")) - new Date(g(a,"cancelledDate")));
+
+  if (!items.length) { el.innerHTML = '<div style="color:#6b7280;padding:10px;">No cancellations in the last 30 days.</div>'; return; }
+
+  let html = '<div style="overflow-x:auto"><table><thead><tr><th>Customer</th><th>Rep</th><th>Stage at Cancel</th><th>Cancel Date</th><th>Reason</th></tr></thead><tbody>';
+  items.forEach(r => {
+    html += `<tr>
+      <td>${name(r)}</td>
+      <td>${g(r,"salesRep")||"—"}</td>
+      <td>${g(r,"projectStatus")||"—"}</td>
+      <td>${fmtDate(g(r,"cancelledDate"))}</td>
+      <td>${g(r,"holdReason")||"—"}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+// ── Collapse ──
+function toggleCollapse(el) {
+  el.classList.toggle("open");
+  const body = el.nextElementSibling;
+  body.classList.toggle("open");
+}
+
+// ── Data Load ──
+async function loadData() {
+  document.getElementById("timestamp").textContent = "fetching…";
+
+  // Show loading in all sections
+  ["overdue-content","risk-content","rep-content","state-content","cancel-content"].forEach(id => {
+    document.getElementById(id).innerHTML = '<div class="loading"><div class="spinner"></div>Loading…</div>';
+  });
+
+  try {
+    const response = await fetch("https://api.glideapp.io/api/function/queryTables", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer 111563eb-e5da-4edd-9c05-ebc1211c9c67"
+      },
+      body: JSON.stringify({
+        appID: "WEqKdk79MyKdeDQ1YfZa",
+        queries: [{
+          tableName: "native-table-slnGZlKQWqYv6en1oee1",
+          utc: true
+        }]
+      })
+    });
+
+    if (!response.ok) throw new Error("API returned " + response.status);
+
+    const data = await response.json();
+    const rows = data[0]?.rows || [];
+
+    if (!rows.length) {
+      showError("No data returned from API.");
+      return;
+    }
+
+    const now = new Date();
+    document.getElementById("timestamp").textContent = now.toLocaleString("en-US", {
+      month: "short", day: "numeric", hour: "numeric", minute: "2-digit"
+    });
+
+    renderKPI(rows);
+    renderFunnel(rows);
+    renderOverdue(rows);
+    renderRisk(rows);
+    renderByRep(rows);
+    renderByState(rows);
+    renderCancellations(rows);
+
+  } catch (err) {
+    console.error(err);
+    showError("Failed to load data: " + err.message);
+  }
+}
+
+function showError(msg) {
+  document.getElementById("timestamp").textContent = "error";
+  ["overdue-content","risk-content","rep-content","state-content","cancel-content"].forEach(id => {
+    document.getElementById(id).innerHTML = `<div class="error-msg">${msg}</div>`;
+  });
+}
+
+// Auto-load
+loadData();
+</script>
+</body>
+</html>

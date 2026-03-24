@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — SolarNest Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f1117;
+      color: #d1d5db;
+      line-height: 1.75;
+      padding: 48px 24px;
+    }
+    .container { max-width: 760px; margin: 0 auto; }
+    .logo {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 48px;
+    }
+    .logo-mark {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: linear-gradient(135deg,#3b82f6,#6366f1);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-mark svg { width: 20px; height: 20px; color: white; }
+    .logo-text { font-size: 16px; font-weight: 600; color: #f9fafb; }
+    .logo-sub { font-size: 12px; color: #6b7280; margin-top: 1px; }
+    h1 { font-size: 28px; font-weight: 700; color: #f9fafb; margin-bottom: 8px; }
+    .effective { font-size: 13px; color: #6b7280; margin-bottom: 40px; }
+    h2 { font-size: 16px; font-weight: 600; color: #f9fafb; margin: 36px 0 12px; }
+    p { font-size: 14px; color: #9ca3af; margin-bottom: 12px; }
+    ul { font-size: 14px; color: #9ca3af; padding-left: 20px; margin-bottom: 12px; }
+    ul li { margin-bottom: 6px; }
+    a { color: #60a5fa; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .divider { border: none; border-top: 1px solid #1e2535; margin: 40px 0; }
+    .contact-box {
+      background: #161b27; border: 1px solid #1e2535; border-radius: 10px;
+      padding: 20px 24px; margin-top: 8px;
+    }
+    .contact-box p { margin: 0; }
+    footer { margin-top: 64px; font-size: 12px; color: #4b5563; }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="logo">
+      <div class="logo-mark">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+        </svg>
+      </div>
+      <div>
+        <div class="logo-text">SolarNest Dashboard</div>
+        <div class="logo-sub">by Process Falcon, LLC</div>
+      </div>
+    </div>
+
+    <h1>Privacy Policy</h1>
+    <p class="effective">Effective Date: March 24, 2026 · Last Updated: March 24, 2026</p>
+
+    <p>This Privacy Policy describes how Process Falcon, LLC ("Process Falcon," "we," "us," or "our") handles information when you use the SolarNest Dashboard application ("the App"), including its optional Gmail integration.</p>
+
+    <h2>1. What the App Does</h2>
+    <p>SolarNest Dashboard is an internal operations tool for solar installation companies. It displays project pipeline data from Glide and, optionally, unread emails from a connected Gmail inbox — all within the user's browser.</p>
+
+    <h2>2. Gmail Data</h2>
+    <p>If you choose to connect your Gmail account, the App requests read-only access to your Gmail inbox using Google's OAuth 2.0 authorization. Specifically:</p>
+    <ul>
+      <li>We request the <code>gmail.readonly</code> scope to fetch your unread email subjects, senders, dates, and preview snippets.</li>
+      <li>This data is fetched directly from Google's API in your browser and displayed on screen.</li>
+      <li><strong>We do not transmit, store, or log your Gmail data on any server.</strong> Your emails never leave your browser session.</li>
+      <li>Your OAuth access token is stored only in your browser's <code>sessionStorage</code> and is discarded when you close the tab.</li>
+      <li>You can disconnect Gmail at any time by clicking your email address in the dashboard header.</li>
+    </ul>
+
+    <h2>3. Data We Do Not Collect</h2>
+    <p>Process Falcon does not:</p>
+    <ul>
+      <li>Store, transmit, or share your Gmail messages or metadata</li>
+      <li>Use your Gmail data for advertising or marketing purposes</li>
+      <li>Share your Gmail data with any third party</li>
+      <li>Retain any Gmail data after your browser session ends</li>
+    </ul>
+
+    <h2>4. Google API Services User Data Policy</h2>
+    <p>SolarNest Dashboard's use and transfer of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank">Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
+
+    <h2>5. Project Data (Glide)</h2>
+    <p>Pipeline and project data is fetched from Glide using your organization's API credentials. This data is displayed within the dashboard and is not stored, logged, or transmitted beyond what is necessary to render the interface.</p>
+
+    <h2>6. Cookies and Local Storage</h2>
+    <p>The App uses <code>sessionStorage</code> to temporarily store your Gmail access token for the duration of your browser session. No cookies are set. No persistent identifiers are stored.</p>
+
+    <h2>7. Who Can Use This App</h2>
+    <p>Access to SolarNest Dashboard is restricted to authorized users added by Process Falcon or the subscribing organization. This is not a public application.</p>
+
+    <h2>8. Changes to This Policy</h2>
+    <p>We may update this policy from time to time. The "Last Updated" date at the top of this page will reflect any changes. Continued use of the App after changes constitutes acceptance of the revised policy.</p>
+
+    <hr class="divider" />
+
+    <h2>Contact</h2>
+    <div class="contact-box">
+      <p>Process Falcon, LLC<br />
+      Email: <a href="mailto:dex@processfalcon.com">dex@processfalcon.com</a><br />
+      Website: <a href="https://processfalcon.com" target="_blank">processfalcon.com</a></p>
+    </div>
+
+    <footer>
+      <p>© 2026 Process Falcon, LLC. All rights reserved.</p>
+    </footer>
+
+  </div>
+</body>
+</html>

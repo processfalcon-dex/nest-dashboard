@@ -6,6 +6,7 @@
   <title>EPC Solar Operations Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -239,104 +240,25 @@
   <!-- MAIN GRID -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 
-    <!-- CARD 1: Priority Emails (sample data — Gmail integration coming later) -->
+    <!-- CARD 1: Priority Emails (live Gmail OAuth) -->
     <div class="card p-5 flex flex-col gap-4">
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between flex-wrap gap-2">
         <div class="flex items-center gap-2">
           <span class="text-lg">📧</span>
           <h2 class="text-sm font-semibold text-white">Priority Emails</h2>
         </div>
-        <span class="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full">justin@epcsolar.com · live</span>
+        <div id="gmail-status-badge" class="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full">Not connected</div>
       </div>
-      <div class="flex flex-col gap-3">
-
-        <div class="flex flex-col gap-1.5 pb-3 border-b border-gray-800">
-          <div class="flex items-start justify-between gap-2">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 mb-0.5">
-                <span class="badge-urgent text-xs font-semibold px-2 py-0.5 rounded-full">URGENT</span>
-                <span class="text-xs text-gray-500">Tue, 17 Mar 2026</span>
-              </div>
-              <div class="text-sm font-medium text-white truncate">Solar</div>
-              <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">therese allen</span></div>
-              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">Checked with Charlotte County and no permit for installation of solar panels to our home has been initiated or approved.</div>
-            </div>
-          </div>
-          <a href="https://mail.google.com/mail/u/0/#inbox/19cfe42253ed469b" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
-        </div>
-        <div class="flex flex-col gap-1.5 pb-3 border-b border-gray-800">
-          <div class="flex items-start justify-between gap-2">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 mb-0.5">
-                <span class="badge-urgent text-xs font-semibold px-2 py-0.5 rounded-full">URGENT</span>
-                <span class="text-xs text-gray-500">Tue, 17 Mar 2026</span>
-              </div>
-              <div class="text-sm font-medium text-white truncate">Enerflo</div>
-              <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">Eric Ord</span></div>
-              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">Hey Justin, I know my team has been hitting you up - but I wanted to reach out to you personally. We want this to be a r</div>
-            </div>
-          </div>
-          <a href="https://mail.google.com/mail/u/0/#inbox/19cfe12504bef793" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
-        </div>
-        <div class="flex flex-col gap-1.5 pb-3 border-b border-gray-800">
-          <div class="flex items-start justify-between gap-2">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 mb-0.5">
-                <span class="badge-urgent text-xs font-semibold px-2 py-0.5 rounded-full">URGENT</span>
-                <span class="text-xs text-gray-500">Tue, 17 Mar 2026</span>
-              </div>
-              <div class="text-sm font-medium text-white truncate">Re: 📅 Your EPC Solar Project Has Been Scheduled!</div>
-              <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">Esperanza Hurtado</span></div>
-              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">Thank you for the update. On Tue, Mar 17, 2026, 11:14 AM &lt;justin@epcsolar.com&gt; wrote: Hi There! We&#39;re excited </div>
-            </div>
-          </div>
-          <a href="https://mail.google.com/mail/u/0/#inbox/19cfd54e2b9201a6" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
-        </div>
-        <div class="flex flex-col gap-1.5 pb-3 border-b border-gray-800">
-          <div class="flex items-start justify-between gap-2">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 mb-0.5">
-                <span class="badge-urgent text-xs font-semibold px-2 py-0.5 rounded-full">URGENT</span>
-                <span class="text-xs text-gray-500">Tue, 17 Mar 2026</span>
-              </div>
-              <div class="text-sm font-medium text-white truncate">Re: Administrative Stipulation Cleared for Mary Patrica Byrne</div>
-              <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">Rachael Hansen</span></div>
-              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">@Justin Porter this job has NTP but martell never added to nest should we have someone reach out? On Mon, Mar 16, 2026 a</div>
-            </div>
-          </div>
-          <a href="https://mail.google.com/mail/u/0/#inbox/19cfbc7762455b37" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
-        </div>
-        <div class="flex flex-col gap-1.5 pb-3 border-b border-gray-800">
-          <div class="flex items-start justify-between gap-2">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 mb-0.5">
-                <span class="badge-urgent text-xs font-semibold px-2 py-0.5 rounded-full">URGENT</span>
-                <span class="text-xs text-gray-500">Tue, 17 Mar 2026</span>
-              </div>
-              <div class="text-sm font-medium text-white truncate">Re: 📅 Your EPC Solar Project Has Been Scheduled!</div>
-              <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">John Crittenden</span></div>
-              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">Ok, thank you. John Crittenden Palm Harbor, FL From: Justin Porter &lt;justin@epcsolar.com&gt; Sent: Monday, March 16, 2</div>
-            </div>
-          </div>
-          <a href="https://mail.google.com/mail/u/0/#inbox/19cf94e9b935f2d9" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
-        </div>
-        <div class="flex flex-col gap-1.5 ">
-          <div class="flex items-start justify-between gap-2">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 mb-0.5">
-                <span class="badge-urgent text-xs font-semibold px-2 py-0.5 rounded-full">URGENT</span>
-                <span class="text-xs text-gray-500">Mon, 16 Mar 2026</span>
-              </div>
-              <div class="text-sm font-medium text-white truncate">Fwd: Invoice EPC2935 from EPC SOLAR & ELECTRICAL CONTRACTORS</div>
-              <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">Rachael Hansen</span></div>
-              <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">---------- Forwarded message --------- From: Cassie Parsneau &lt;cparsneau@goodpwr.com&gt; Date: Mon, Mar 16, 2026 at 3:</div>
-            </div>
-          </div>
-          <a href="https://mail.google.com/mail/u/0/#inbox/19cf807b1d602859" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
-        </div>
-
-      
-
+      <!-- Connect state -->
+      <div id="gmail-connect-state" class="flex flex-col items-center gap-3 py-6">
+        <p class="text-xs text-gray-400 text-center">Connect your Gmail to see priority emails</p>
+        <button id="gmail-signin-btn" onclick="gmailSignIn()" class="gmail-btn" style="padding:8px 18px;font-size:13px;">
+          🔑 Connect Gmail
+        </button>
+      </div>
+      <!-- Email list (hidden until connected) -->
+      <div id="gmail-email-list" class="flex flex-col gap-3 overflow-y-auto" style="display:none!important;max-height:480px;">
+        <!-- Populated by loadGmailEmails() -->
       </div>
     </div>
 
@@ -1139,6 +1061,128 @@
         if (icon) icon.textContent = '↓';
       }
     })();
+
+    // ─── Gmail OAuth Integration ──────────────────────────────────────────────
+    const GMAIL_CLIENT_ID = '940346836809-oq6r50ogf63irspgn36n13pq8h29ibo4.apps.googleusercontent.com';
+    const GMAIL_SCOPES = 'https://www.googleapis.com/auth/gmail.readonly';
+    let gmailAccessToken = null;
+
+    // Try to restore token from sessionStorage on load
+    (function() {
+      const saved = sessionStorage.getItem('gmail_token');
+      if (saved) {
+        gmailAccessToken = saved;
+        showGmailConnected();
+        loadGmailEmails();
+      }
+    })();
+
+    function gmailSignIn() {
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: GMAIL_CLIENT_ID,
+        scope: GMAIL_SCOPES,
+        callback: (response) => {
+          if (response.error) {
+            console.error('Gmail auth error:', response.error);
+            return;
+          }
+          gmailAccessToken = response.access_token;
+          sessionStorage.setItem('gmail_token', gmailAccessToken);
+          showGmailConnected();
+          loadGmailEmails();
+        },
+      });
+      client.requestAccessToken();
+    }
+
+    function showGmailConnected() {
+      document.getElementById('gmail-connect-state').style.display = 'none';
+      document.getElementById('gmail-email-list').style.removeProperty('display');
+      document.getElementById('gmail-email-list').style.display = 'flex';
+    }
+
+    function gmailSignOut() {
+      sessionStorage.removeItem('gmail_token');
+      gmailAccessToken = null;
+      document.getElementById('gmail-connect-state').style.display = 'flex';
+      document.getElementById('gmail-email-list').style.display = 'none';
+      document.getElementById('gmail-status-badge').textContent = 'Not connected';
+    }
+
+    async function loadGmailEmails() {
+      if (!gmailAccessToken) return;
+      const list = document.getElementById('gmail-email-list');
+      list.innerHTML = '<div class="text-xs text-gray-500 text-center py-4 loading-shimmer px-10 py-2">Loading emails...</div>';
+
+      try {
+        // Fetch unread messages — Gmail API list
+        const query = 'is:unread in:inbox';
+        const listResp = await fetch(
+          `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=15&q=${encodeURIComponent(query)}`,
+          { headers: { Authorization: `Bearer ${gmailAccessToken}` } }
+        );
+        if (listResp.status === 401) { gmailSignOut(); return; }
+        const listData = await listResp.json();
+        const messages = listData.messages || [];
+
+        if (messages.length === 0) {
+          list.innerHTML = '<div class="text-xs text-gray-400 text-center py-6">🎉 No unread emails</div>';
+          return;
+        }
+
+        // Fetch details in parallel
+        const details = await Promise.all(messages.map(m =>
+          fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
+            { headers: { Authorization: `Bearer ${gmailAccessToken}` } }
+          ).then(r => r.json())
+        ));
+
+        // Update badge with connected email
+        const profileResp = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile',
+          { headers: { Authorization: `Bearer ${gmailAccessToken}` } });
+        if (profileResp.ok) {
+          const profile = await profileResp.json();
+          const badge = document.getElementById('gmail-status-badge');
+          if (badge) {
+            badge.textContent = profile.emailAddress + ' · live';
+            badge.style.cursor = 'pointer';
+            badge.title = 'Click to disconnect';
+            badge.onclick = gmailSignOut;
+          }
+        }
+
+        list.innerHTML = details.map((msg, idx) => {
+          const headers = msg.payload?.headers || [];
+          const get = (name) => (headers.find(h => h.name === name) || {}).value || '';
+          const subject = get('Subject') || '(no subject)';
+          const from    = get('From');
+          const date    = get('Date');
+          const fromName = from.replace(/<[^>]+>/, '').replace(/"/g, '').trim() || from;
+          const snippet = escHtml(msg.snippet || '');
+          const msgUrl  = `https://mail.google.com/mail/u/0/#inbox/${msg.id}`;
+          const isLast  = idx === details.length - 1;
+          const dateStr = date ? new Date(date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+
+          return `
+            <div class="flex flex-col gap-1.5 ${isLast ? '' : 'pb-3 border-b border-gray-800'}">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-0.5">
+                  <span class="badge-urgent text-xs font-semibold px-2 py-0.5 rounded-full">UNREAD</span>
+                  <span class="text-xs text-gray-500">${escHtml(dateStr)}</span>
+                </div>
+                <div class="text-sm font-medium text-white truncate" title="${escHtml(subject)}">${escHtml(subject)}</div>
+                <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">${escHtml(fromName)}</span></div>
+                <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">${snippet}</div>
+              </div>
+              <a href="${msgUrl}" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
+            </div>`;
+        }).join('');
+
+      } catch(e) {
+        console.error('Gmail load error:', e);
+        list.innerHTML = '<div class="text-xs text-red-400 text-center py-4">Failed to load emails</div>';
+      }
+    }
   </script>
 </body>
 </html>
