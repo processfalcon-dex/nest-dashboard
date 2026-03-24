@@ -211,13 +211,13 @@
       
       <div class="stat-card">
         <div class="text-xs text-gray-500 mb-1">Avg System Size</div>
-        <div class="text-2xl font-bold text-gray-500">N/A</div>
-        <div class="text-xs text-gray-600 mt-1">Coming soon</div>
+        <div id="kpi-avg-system-size" class="text-2xl font-bold text-white loading-shimmer">00</div>
+        <div id="kpi-avg-system-size-sub" class="text-xs text-gray-500 mt-1">Loading...</div>
       </div>
       <div class="stat-card">
-        <div class="text-xs text-gray-500 mb-1">Avg Gross Margin</div>
-        <div class="text-2xl font-bold text-gray-500">N/A</div>
-        <div class="text-xs text-gray-600 mt-1">Coming soon</div>
+        <div class="text-xs text-gray-500 mb-1">💰 Pipeline Value</div>
+        <div id="kpi-pipeline-value" class="text-2xl font-bold text-green-400 loading-shimmer">$0</div>
+        <div id="kpi-pipeline-value-sub" class="text-xs text-gray-500 mt-1">Loading...</div>
       </div>
       <div class="stat-card">
         <div class="text-xs text-gray-500 mb-1">🔧 Installs This Week</div>
@@ -394,7 +394,8 @@
     const GLIDE_TOKEN  = '111563eb-e5da-4edd-9c05-ebc1211c9c67';
     const GLIDE_APP_ID = 'Tc2JYiVU5TBvWf9VaZJs'; // EPC Solar PRODUCTION
     const GLIDE_TABLE  = 'native-table-slnGZlKQWqYv6en1oee1';
-    const GLIDE_ENDPOINT = 'https://api.glideapp.io/api/function/queryTables';
+    const GLIDE_ENDPOINT        = 'https://api.glideapp.io/api/function/queryTables';
+    const GLIDE_TABLE_FUNDING   = 'native-table-xTZOuwFnGRVnAduY5A8O';
 
     // Column key map
     const C = {
@@ -406,6 +407,8 @@
       customerFirstName:        'JBtiy',
       customerLastName:         'TTYBa',
       enteredStageDate:         'xxdOK',
+      panelCount:               'e39pM',
+      panelModel:               '4pVAx',
       scrubStatus:              'cBYm2',
       siteSurveyStatus:         'jeglq',
       engineeringStatus:        'WVcTG',
@@ -576,6 +579,16 @@
         if (val === 'complete' || val === 'completed') return STAGES[i].name;
       }
       return 'Unknown';
+    }
+
+    // Extract panel wattage from model string e.g. "MSX10-435HN0B" -> 435
+    function extractWatts(model) {
+      if (!model) return null;
+      const m = model.match(/[-\s](\d{3,4})[A-Za-z]/);
+      if (m) return parseInt(m[1]);
+      const m2 = model.match(/(\d{3,4})/);
+      if (m2) { const n = parseInt(m2[1]); if (n >= 300 && n <= 700) return n; }
+      return null;
     }
 
     function isActive(row) {
@@ -849,6 +862,8 @@
         let installsThisWeek = 0;
         let installsNextWeek = 0;
         let submissions7d    = 0;
+        let systemSizeSum    = 0;
+        let systemSizeCount  = 0;
 
         const stateMap = {};
         const stalledCandidates = [];
@@ -863,6 +878,14 @@
             const st = (row[C.state] || '').toString().trim().toUpperCase();
             if (st) {
               stateMap[st] = (stateMap[st] || 0) + 1;
+            }
+
+            // Avg system size — panels × wattage / 1000
+            const panels = parseFloat(row[C.panelCount]);
+            const watts  = extractWatts(row[C.panelModel]);
+            if (panels && watts) {
+              systemSizeSum += panels * watts / 1000;
+              systemSizeCount++;
             }
 
             // SLA-aware stage status — biz days in current stage vs per-stage SLA
@@ -886,6 +909,36 @@
             submissions7d++;
           }
         }
+
+        // ── Pipeline Value from Funding Checklist table ───────────────────────
+        let pipelineValue = 0;
+        let pipelineCount = 0;
+        try {
+          const activeIds = new Set(rows.filter(r => isActive(r)).map(r => r['$rowID']).filter(Boolean));
+          const fundingRows = await fetchAllRows(GLIDE_TABLE_FUNDING);
+          for (const f of fundingRows) {
+            const pid = f['Name'];
+            if (!pid || !activeIds.has(pid)) continue;
+            const cv  = parseFloat(f['Y18V1'] || 0);
+            // Financed milestones
+            const m1  = parseFloat(f['N9NEs'] || 0);
+            const m2  = parseFloat(f['3leHP'] || 0);
+            const m3  = parseFloat(f['nTX42'] || 0);
+            // Cash payments — only subtract if a paid date exists
+            const dep = f['YAymF'] ? parseFloat(f['FEXd2'] || 0) : 0; // deposit paid
+            const c2  = f['d2oI3'] ? parseFloat(f['NSvym'] || 0) : 0; // invoice 2 paid
+            const c3  = f['6p4Au'] ? parseFloat(f['GwKxk'] || 0) : 0; // invoice 3 paid
+            const c4  = f['GGmwH'] ? parseFloat(f['0yRSO'] || 0) : 0; // invoice 4 paid
+            const bal = cv - m1 - m2 - m3 - dep - c2 - c3 - c4;
+            if (bal > 0) { pipelineValue += bal; pipelineCount++; }
+          }
+        } catch(e) { console.warn('Funding table fetch failed:', e); }
+
+        const fmtCurrency = (n) => n >= 1000000
+          ? `$${(n/1000000).toFixed(2)}M`
+          : `$${(n/1000).toFixed(0)}K`;
+        setKpi('kpi-pipeline-value', fmtCurrency(pipelineValue), 'kpi-pipeline-value-sub',
+          `${pipelineCount} active projects`, 'text-green-400');
 
         // ── Installs from Scheduled Work table (active projects only) ─────────
         try {
@@ -922,6 +975,8 @@
         const top10Stalled = stalledCandidates; // show all at-risk/overdue
 
         // ── Update KPIs ──
+        const avgSize = systemSizeCount > 0 ? (systemSizeSum / systemSizeCount).toFixed(2) : null;
+        setKpi('kpi-avg-system-size', avgSize ? `${avgSize} kW` : 'N/A', 'kpi-avg-system-size-sub', avgSize ? `${systemSizeCount} active projects` : 'No data', 'text-gray-400');
         setKpi('kpi-active-jobs', activeJobs, 'kpi-active-jobs-sub', `${rows.length} total projects`, 'text-gray-400');
         setKpi('kpi-stalled', overdueCount, 'kpi-stalled-sub', 'Past SLA deadline', overdueCount > 0 ? 'text-red-400' : 'text-gray-400');
         setKpi('kpi-atrisk', atRiskCount, 'kpi-atrisk-sub', '>75% of SLA elapsed', atRiskCount > 0 ? 'text-yellow-400' : 'text-gray-400');
@@ -960,11 +1015,11 @@
         if (msg)    msg.textContent = `Failed to load live data: ${err.message}`;
 
         // Clear shimmer on KPIs, show error state
-        ['kpi-active-jobs','kpi-stalled','kpi-atrisk','kpi-installs-this-week','kpi-installs-next-week','kpi-submissions-7d'].forEach(id => {
+        ['kpi-active-jobs','kpi-stalled','kpi-atrisk','kpi-avg-system-size','kpi-pipeline-value','kpi-installs-this-week','kpi-installs-next-week','kpi-submissions-7d'].forEach(id => {
           const el = document.getElementById(id);
           if (el) { el.textContent = '—'; el.classList.remove('loading-shimmer'); }
         });
-        ['kpi-active-jobs-sub','kpi-stalled-sub','kpi-atrisk-sub','kpi-installs-this-week-sub','kpi-installs-next-week-sub','kpi-submissions-7d-sub'].forEach(id => {
+        ['kpi-active-jobs-sub','kpi-stalled-sub','kpi-atrisk-sub','kpi-avg-system-size-sub','kpi-pipeline-value-sub','kpi-installs-this-week-sub','kpi-installs-next-week-sub','kpi-submissions-7d-sub'].forEach(id => {
           const el = document.getElementById(id);
           if (el) { el.textContent = 'Data unavailable'; el.className = 'text-xs mt-1 text-red-400'; }
         });
