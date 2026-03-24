@@ -330,17 +330,27 @@
     </div>
   </div>
 
-  <!-- ACTION ITEMS WIDGET -->
-  <div class="mt-5">
+  <!-- TASKS WIDGET — visible to anyone connected via Gmail -->
+  <div class="mt-5" id="action-items-widget" style="display:none;">
     <div class="card p-5">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div class="flex items-center gap-2">
-          <span class="text-lg">📋</span>
-          <h2 class="text-sm font-semibold text-white">My Action Items</h2>
+          <span class="text-lg">✅</span>
+          <h2 class="text-sm font-semibold text-white">My Tasks <span id="tasks-count" class="text-gray-500 font-normal text-xs ml-1"></span></h2>
         </div>
-        <span class="text-xs text-gray-500">Things blocking the next build</span>
+        <button onclick="showAddTaskForm()" class="gmail-btn" style="padding:5px 12px;font-size:11px;">+ Add Task</button>
       </div>
-      <div id="action-items-list" class="flex flex-col gap-2"></div>
+      <!-- Add task form (hidden by default) -->
+      <div id="add-task-form" style="display:none;" class="mb-4 flex gap-2">
+        <input id="new-task-note" type="text" placeholder="Task note..." 
+          class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+          onkeydown="if(event.key==='Enter') submitNewTask()" />
+        <button onclick="submitNewTask()" class="gmail-btn" style="padding:6px 14px;">Save</button>
+        <button onclick="hideAddTaskForm()" class="gmail-btn" style="padding:6px 10px;color:#6b7280;">✕</button>
+      </div>
+      <div id="tasks-list" class="flex flex-col gap-2">
+        <div class="text-xs text-gray-500 text-center py-4">Connect Gmail to load your tasks</div>
+      </div>
     </div>
   </div>
 
@@ -1105,7 +1115,162 @@
       }).join('');
     }
 
-    renderActionItems();
+    // ─── Tasks Widget ─────────────────────────────────────────────────────────
+    const GLIDE_TABLE_TASKS = 'native-table-efd62ae1-fc15-4a15-b451-9539501c3951';
+    const TC = {
+      projectId:            'Name',
+      assignedTo:           'BpSRN',
+      taskNote:             'RAx75',
+      createdAt:            '3blbH',
+      completedAt:          'ovkB0',
+      status:               'ZeCt2',
+      sourceDiscordMsgId:   'XI2kN',
+    };
+
+    let _currentUserEmail = null;
+    let _tasksData        = [];
+
+    async function loadUserTasks(email) {
+      _currentUserEmail = email;
+      const list = document.getElementById('tasks-list');
+      if (!list) return;
+      list.innerHTML = '<div class="text-xs text-gray-500 text-center py-4 loading-shimmer px-16 py-2">Loading tasks...</div>';
+
+      try {
+        const rows = await fetchAllRows(GLIDE_TABLE_TASKS);
+        // Filter to this user's open tasks
+        _tasksData = rows.filter(r =>
+          (r[TC.assignedTo] || '').toLowerCase() === email.toLowerCase() &&
+          (r[TC.status] || 'open').toLowerCase() !== 'complete'
+        );
+        // Sort: oldest first
+        _tasksData.sort((a, b) => new Date(a[TC.createdAt]||0) - new Date(b[TC.createdAt]||0));
+        renderTasks();
+      } catch(e) {
+        console.error('Tasks load error:', e);
+        list.innerHTML = '<div class="text-xs text-red-400 text-center py-4">Failed to load tasks</div>';
+      }
+    }
+
+    function renderTasks() {
+      const list  = document.getElementById('tasks-list');
+      const count = document.getElementById('tasks-count');
+      if (!list) return;
+
+      if (count) count.textContent = _tasksData.length > 0 ? `(${_tasksData.length} open)` : '';
+
+      if (_tasksData.length === 0) {
+        list.innerHTML = '<div class="text-xs text-gray-500 text-center py-4">🎉 No open tasks</div>';
+        return;
+      }
+
+      list.innerHTML = _tasksData.map((task, idx) => {
+        const note     = escHtml(task[TC.taskNote] || '(no note)');
+        const projId   = task[TC.projectId] || '';
+        const created  = task[TC.createdAt] ? new Date(task[TC.createdAt]).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+        const rowId    = task['$rowID'] || '';
+        const isLast   = idx === _tasksData.length - 1;
+
+        // Days open
+        const daysOpen = task[TC.createdAt]
+          ? Math.floor((Date.now() - new Date(task[TC.createdAt])) / 86400000)
+          : null;
+        const ageClass = daysOpen > 14 ? 'text-red-400' : daysOpen > 7 ? 'text-yellow-400' : 'text-gray-500';
+
+        return `
+          <div class="flex items-start gap-3 py-2.5 ${isLast ? '' : 'border-b border-gray-800'}" id="task-row-${rowId}">
+            <button onclick="completeTask('${rowId}')" 
+              class="mt-0.5 w-4 h-4 rounded border border-gray-600 flex-shrink-0 hover:border-green-500 hover:bg-green-500/20 transition-colors"
+              title="Mark complete">
+            </button>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm text-white leading-snug">${note}</div>
+              <div class="flex items-center gap-3 mt-0.5">
+                ${projId ? `<span class="text-xs text-blue-400/70 truncate max-w-[120px]" title="${escHtml(projId)}">📁 project</span>` : ''}
+                <span class="text-xs ${ageClass}">${daysOpen !== null ? `${daysOpen}d old` : created}</span>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    async function completeTask(rowId) {
+      const el = document.getElementById(`task-row-${rowId}`);
+      if (el) el.style.opacity = '0.4';
+
+      try {
+        await fetch('https://api.glideapp.io/api/function/mutateTables', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${GLIDE_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            appID: GLIDE_APP_ID,
+            mutations: [{
+              kind: 'set-columns-in-row',
+              tableName: GLIDE_TABLE_TASKS,
+              columnValues: {
+                [TC.status]:      'complete',
+                [TC.completedAt]: new Date().toISOString(),
+              },
+              rowID: rowId,
+            }]
+          })
+        });
+        // Remove from local data and re-render
+        _tasksData = _tasksData.filter(t => t['$rowID'] !== rowId);
+        renderTasks();
+      } catch(e) {
+        console.error('Complete task failed:', e);
+        if (el) el.style.opacity = '1';
+      }
+    }
+
+    function showAddTaskForm() {
+      const form = document.getElementById('add-task-form');
+      if (form) { form.style.display = 'flex'; document.getElementById('new-task-note').focus(); }
+    }
+    function hideAddTaskForm() {
+      const form = document.getElementById('add-task-form');
+      if (form) { form.style.display = 'none'; document.getElementById('new-task-note').value = ''; }
+    }
+
+    async function submitNewTask() {
+      const input = document.getElementById('new-task-note');
+      const note  = (input?.value || '').trim();
+      if (!note || !_currentUserEmail) return;
+      input.disabled = true;
+
+      try {
+        await fetch('https://api.glideapp.io/api/function/mutateTables', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${GLIDE_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            appID: GLIDE_APP_ID,
+            mutations: [{
+              kind: 'add-row-to-table',
+              tableName: GLIDE_TABLE_TASKS,
+              columnValues: {
+                [TC.assignedTo]: _currentUserEmail,
+                [TC.taskNote]:   note,
+                [TC.status]:     'open',
+                [TC.createdAt]:  new Date().toISOString(),
+              }
+            }]
+          })
+        });
+        hideAddTaskForm();
+        await loadUserTasks(_currentUserEmail);
+      } catch(e) {
+        console.error('Add task failed:', e);
+      } finally {
+        if (input) input.disabled = false;
+      }
+    }
 
     // Set initial sort indicator (days desc = most overdue first)
     (function() {
@@ -1162,6 +1327,8 @@
       document.getElementById('gmail-connect-state').style.display = 'flex';
       document.getElementById('gmail-email-list').style.display = 'none';
       document.getElementById('gmail-status-badge').textContent = 'Not connected';
+      const widget = document.getElementById('action-items-widget');
+      if (widget) widget.style.display = 'none';
     }
 
     async function loadGmailEmails() {
@@ -1204,6 +1371,10 @@
             badge.title = 'Click to disconnect';
             badge.onclick = gmailSignOut;
           }
+          // Show tasks widget for all connected users, load their tasks
+          const widget = document.getElementById('action-items-widget');
+          if (widget) widget.style.display = 'block';
+          loadUserTasks(profile.emailAddress);
         }
 
         list.innerHTML = details.map((msg, idx) => {
