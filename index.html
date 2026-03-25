@@ -188,6 +188,11 @@
           <div id="lastUpdated" class="text-white font-mono font-medium text-sm">—</div>
         </div>
         <button onclick="refreshDashboard()" id="refresh-btn" class="gmail-btn" style="padding:6px 14px;font-size:12px;">↻ Refresh</button>
+        <a href="/comms" class="gmail-btn" style="padding:6px 14px;font-size:12px;">🗨️ Comms</a>
+        <div id="signin-wrap">
+          <button onclick="opsSignIn()" class="gmail-btn" style="padding:6px 14px;font-size:12px;">🔑 Sign In</button>
+        </div>
+        <div id="user-badge" class="text-xs text-gray-500 bg-gray-800 px-3 py-1 rounded-full" style="display:none;cursor:pointer;" title="Click to sign out" onclick="opsSignOut()"></div>
       </div>
     </div>
 
@@ -236,29 +241,6 @@
       </div>
     </div>
   </header>
-
-  <!-- TASKS WIDGET — shown after Gmail connect, pinned to top -->
-  <div id="action-items-widget" style="display:none;" class="mb-5">
-    <div class="card p-5">
-      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <div class="flex items-center gap-2">
-          <span class="text-lg">✅</span>
-          <h2 class="text-sm font-semibold text-white">My Tasks <span id="tasks-count" class="text-gray-500 font-normal text-xs ml-1"></span></h2>
-        </div>
-        <button onclick="showAddTaskForm()" class="gmail-btn" style="padding:5px 12px;font-size:11px;">+ Add Task</button>
-      </div>
-      <div id="add-task-form" style="display:none;" class="mb-4 flex gap-2">
-        <input id="new-task-note" type="text" placeholder="Task note..."
-          class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-          onkeydown="if(event.key==='Enter') submitNewTask()" />
-        <button onclick="submitNewTask()" class="gmail-btn" style="padding:6px 14px;">Save</button>
-        <button onclick="hideAddTaskForm()" class="gmail-btn" style="padding:6px 10px;color:#6b7280;">✕</button>
-      </div>
-      <div id="tasks-list" class="flex flex-col gap-2">
-        <div class="text-xs text-gray-500 text-center py-4">Connect Gmail to load your tasks</div>
-      </div>
-    </div>
-  </div>
 
   <!-- OPS KPI STRIP — shown after auth, role-gated -->
   <div id="ops-kpi-strip" style="display:none;" class="mt-4">
@@ -332,32 +314,10 @@
   </div>
 
   <!-- MAIN GRID -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+  <div class="mt-5">
 
-    <!-- CARD 1: Priority Emails (live Gmail OAuth) -->
+    <!-- Stalled Projects — full width -->
     <div class="card p-5 flex flex-col gap-4">
-      <div class="flex items-center justify-between flex-wrap gap-2">
-        <div class="flex items-center gap-2">
-          <span class="text-lg">📧</span>
-          <h2 class="text-sm font-semibold text-white">Priority Emails</h2>
-        </div>
-        <div id="gmail-status-badge" class="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full">Not connected</div>
-      </div>
-      <!-- Connect state -->
-      <div id="gmail-connect-state" class="flex flex-col items-center gap-3 py-6">
-        <p class="text-xs text-gray-400 text-center">Connect your Gmail to see priority emails</p>
-        <button id="gmail-signin-btn" onclick="gmailSignIn()" class="gmail-btn" style="padding:8px 18px;font-size:13px;">
-          🔑 Connect Gmail
-        </button>
-      </div>
-      <!-- Email list (hidden until connected) -->
-      <div id="gmail-email-list" class="flex flex-col gap-3 overflow-y-auto" style="display:none!important;max-height:480px;">
-        <!-- Populated by loadGmailEmails() -->
-      </div>
-    </div>
-
-    <!-- CARD 2: Stalled Projects (ops/admin only) -->
-    <div class="card p-5 flex flex-col gap-4 md:col-span-2 lg:col-span-2">
       <div class="flex items-center justify-between flex-wrap gap-2">
         <div class="flex items-center gap-2">
           <span class="text-lg">🚨</span>
@@ -1257,162 +1217,7 @@
       }).join('');
     }
 
-    // ─── Tasks Widget ─────────────────────────────────────────────────────────
-    const GLIDE_TABLE_TASKS = 'native-table-efd62ae1-fc15-4a15-b451-9539501c3951';
-    const TC = {
-      projectId:            'Name',
-      assignedTo:           'BpSRN',
-      taskNote:             'RAx75',
-      createdAt:            '3blbH',
-      completedAt:          'ovkB0',
-      status:               'ZeCt2',
-      sourceDiscordMsgId:   'XI2kN',
-    };
-
     let _currentUserEmail = null;
-    let _tasksData        = [];
-
-    async function loadUserTasks(email) {
-      _currentUserEmail = email;
-      const list = document.getElementById('tasks-list');
-      if (!list) return;
-      list.innerHTML = '<div class="text-xs text-gray-500 text-center py-4 loading-shimmer px-16 py-2">Loading tasks...</div>';
-
-      try {
-        const rows = await fetchAllRows(GLIDE_TABLE_TASKS);
-        // Filter to this user's open tasks
-        _tasksData = rows.filter(r =>
-          (r[TC.assignedTo] || '').toLowerCase() === email.toLowerCase() &&
-          (r[TC.status] || 'open').toLowerCase() !== 'complete'
-        );
-        // Sort: oldest first
-        _tasksData.sort((a, b) => new Date(a[TC.createdAt]||0) - new Date(b[TC.createdAt]||0));
-        renderTasks();
-      } catch(e) {
-        console.error('Tasks load error:', e);
-        list.innerHTML = '<div class="text-xs text-red-400 text-center py-4">Failed to load tasks</div>';
-      }
-    }
-
-    function renderTasks() {
-      const list  = document.getElementById('tasks-list');
-      const count = document.getElementById('tasks-count');
-      if (!list) return;
-
-      if (count) count.textContent = _tasksData.length > 0 ? `(${_tasksData.length} open)` : '';
-
-      if (_tasksData.length === 0) {
-        list.innerHTML = '<div class="text-xs text-gray-500 text-center py-4">🎉 No open tasks</div>';
-        return;
-      }
-
-      list.innerHTML = _tasksData.map((task, idx) => {
-        const note     = escHtml(task[TC.taskNote] || '(no note)');
-        const projId   = task[TC.projectId] || '';
-        const created  = task[TC.createdAt] ? new Date(task[TC.createdAt]).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
-        const rowId    = task['$rowID'] || '';
-        const isLast   = idx === _tasksData.length - 1;
-
-        // Days open
-        const daysOpen = task[TC.createdAt]
-          ? Math.floor((Date.now() - new Date(task[TC.createdAt])) / 86400000)
-          : null;
-        const ageClass = daysOpen > 14 ? 'text-red-400' : daysOpen > 7 ? 'text-yellow-400' : 'text-gray-500';
-
-        return `
-          <div class="flex items-start gap-3 py-2.5 ${isLast ? '' : 'border-b border-gray-800'}" id="task-row-${rowId}">
-            <button onclick="completeTask('${rowId}')" 
-              class="mt-0.5 w-4 h-4 rounded border border-gray-600 flex-shrink-0 hover:border-green-500 hover:bg-green-500/20 transition-colors"
-              title="Mark complete">
-            </button>
-            <div class="flex-1 min-w-0">
-              <div class="text-sm text-white leading-snug">${note}</div>
-              <div class="flex items-center gap-3 mt-0.5">
-                ${projId ? `<span class="text-xs text-blue-400/70 truncate max-w-[120px]" title="${escHtml(projId)}">📁 project</span>` : ''}
-                <span class="text-xs ${ageClass}">${daysOpen !== null ? `${daysOpen}d old` : created}</span>
-              </div>
-            </div>
-          </div>`;
-      }).join('');
-    }
-
-    async function completeTask(rowId) {
-      const el = document.getElementById(`task-row-${rowId}`);
-      if (el) el.style.opacity = '0.4';
-
-      try {
-        await fetch('https://api.glideapp.io/api/function/mutateTables', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${GLIDE_TOKEN}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            appID: GLIDE_APP_ID,
-            mutations: [{
-              kind: 'set-columns-in-row',
-              tableName: GLIDE_TABLE_TASKS,
-              columnValues: {
-                [TC.status]:      'complete',
-                [TC.completedAt]: new Date().toISOString(),
-              },
-              rowID: rowId,
-            }]
-          })
-        });
-        // Remove from local data and re-render
-        _tasksData = _tasksData.filter(t => t['$rowID'] !== rowId);
-        renderTasks();
-      } catch(e) {
-        console.error('Complete task failed:', e);
-        if (el) el.style.opacity = '1';
-      }
-    }
-
-    function showAddTaskForm() {
-      const form = document.getElementById('add-task-form');
-      if (form) { form.style.display = 'flex'; document.getElementById('new-task-note').focus(); }
-    }
-    function hideAddTaskForm() {
-      const form = document.getElementById('add-task-form');
-      if (form) { form.style.display = 'none'; document.getElementById('new-task-note').value = ''; }
-    }
-
-    async function submitNewTask() {
-      const input = document.getElementById('new-task-note');
-      const note  = (input?.value || '').trim();
-      if (!note || !_currentUserEmail) return;
-      input.disabled = true;
-
-      try {
-        await fetch('https://api.glideapp.io/api/function/mutateTables', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${GLIDE_TOKEN}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            appID: GLIDE_APP_ID,
-            mutations: [{
-              kind: 'add-row-to-table',
-              tableName: GLIDE_TABLE_TASKS,
-              columnValues: {
-                [TC.assignedTo]: _currentUserEmail,
-                [TC.taskNote]:   note,
-                [TC.status]:     'open',
-                [TC.createdAt]:  new Date().toISOString(),
-              }
-            }]
-          })
-        });
-        hideAddTaskForm();
-        await loadUserTasks(_currentUserEmail);
-      } catch(e) {
-        console.error('Add task failed:', e);
-      } finally {
-        if (input) input.disabled = false;
-      }
-    }
 
     // Set initial sort indicator (days desc = most overdue first)
     (function() {
@@ -1424,133 +1229,59 @@
       }
     })();
 
-    // ─── Gmail OAuth Integration ──────────────────────────────────────────────
-    const GMAIL_CLIENT_ID = '940346836809-oq6r50ogf63irspgn36n13pq8h29ibo4.apps.googleusercontent.com';
-    const GMAIL_SCOPES = 'https://www.googleapis.com/auth/gmail.readonly';
-    let gmailAccessToken = null;
+    // ─── Google Sign-In (permissions only — no email reading) ─────────────────
+    const OPS_CLIENT_ID = '940346836809-oq6r50ogf63irspgn36n13pq8h29ibo4.apps.googleusercontent.com';
 
-    // Try to restore token from sessionStorage on load
+    // Restore session
     (function() {
-      const saved = sessionStorage.getItem('gmail_token');
+      const saved = sessionStorage.getItem('ops_user_email');
       if (saved) {
-        gmailAccessToken = saved;
-        showGmailConnected();
-        loadGmailEmails();
+        _currentUserEmail = saved;
+        showUserSignedIn(saved);
+        loadUserPermissions(saved);
       }
     })();
 
-    function gmailSignIn() {
+    function opsSignIn() {
       const client = google.accounts.oauth2.initTokenClient({
-        client_id: GMAIL_CLIENT_ID,
-        scope: GMAIL_SCOPES,
-        callback: (response) => {
-          if (response.error) {
-            console.error('Gmail auth error:', response.error);
-            return;
-          }
-          gmailAccessToken = response.access_token;
-          sessionStorage.setItem('gmail_token', gmailAccessToken);
-          showGmailConnected();
-          loadGmailEmails();
+        client_id: OPS_CLIENT_ID,
+        scope: 'https://www.googleapis.com/auth/userinfo.email',
+        callback: async (response) => {
+          if (response.error) { console.error('Sign-in error:', response.error); return; }
+          try {
+            const profileResp = await fetch('https://www.googleapis.com/oauth2/v2/userinfo',
+              { headers: { Authorization: `Bearer ${response.access_token}` } });
+            if (!profileResp.ok) return;
+            const profile = await profileResp.json();
+            const email = profile.email;
+            _currentUserEmail = email;
+            sessionStorage.setItem('ops_user_email', email);
+            showUserSignedIn(email);
+            await loadUserPermissions(email);
+          } catch(e) { console.error('Profile fetch failed:', e); }
         },
       });
       client.requestAccessToken();
     }
 
-    function showGmailConnected() {
-      document.getElementById('gmail-connect-state').style.display = 'none';
-      document.getElementById('gmail-email-list').style.removeProperty('display');
-      document.getElementById('gmail-email-list').style.display = 'flex';
+    function showUserSignedIn(email) {
+      document.getElementById('signin-wrap').style.display = 'none';
+      const badge = document.getElementById('user-badge');
+      badge.style.display = 'inline-block';
+      badge.textContent = email;
     }
 
-    function gmailSignOut() {
-      sessionStorage.removeItem('gmail_token');
-      gmailAccessToken = null;
-      document.getElementById('gmail-connect-state').style.display = 'flex';
-      document.getElementById('gmail-email-list').style.display = 'none';
-      document.getElementById('gmail-status-badge').textContent = 'Not connected';
-      const widget = document.getElementById('action-items-widget');
-      if (widget) widget.style.display = 'none';
-    }
-
-    async function loadGmailEmails() {
-      if (!gmailAccessToken) return;
-      const list = document.getElementById('gmail-email-list');
-      list.innerHTML = '<div class="text-xs text-gray-500 text-center py-4 loading-shimmer px-10 py-2">Loading emails...</div>';
-
-      try {
-        // Fetch unread messages — Gmail API list
-        const query = 'is:unread in:inbox';
-        const listResp = await fetch(
-          `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=15&q=${encodeURIComponent(query)}`,
-          { headers: { Authorization: `Bearer ${gmailAccessToken}` } }
-        );
-        if (listResp.status === 401) { gmailSignOut(); return; }
-        const listData = await listResp.json();
-        const messages = listData.messages || [];
-
-        if (messages.length === 0) {
-          list.innerHTML = '<div class="text-xs text-gray-400 text-center py-6">🎉 No unread emails</div>';
-          return;
-        }
-
-        // Fetch details in parallel
-        const details = await Promise.all(messages.map(m =>
-          fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
-            { headers: { Authorization: `Bearer ${gmailAccessToken}` } }
-          ).then(r => r.json())
-        ));
-
-        // Update badge with connected email
-        const profileResp = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile',
-          { headers: { Authorization: `Bearer ${gmailAccessToken}` } });
-        if (profileResp.ok) {
-          const profile = await profileResp.json();
-          const badge = document.getElementById('gmail-status-badge');
-          if (badge) {
-            badge.textContent = profile.emailAddress + ' · live';
-            badge.style.cursor = 'pointer';
-            badge.title = 'Click to disconnect';
-            badge.onclick = gmailSignOut;
-          }
-          // Show tasks widget + load permissions
-          const widget = document.getElementById('action-items-widget');
-          if (widget) widget.style.display = 'block';
-          loadUserTasks(profile.emailAddress);
-          await loadUserPermissions(profile.emailAddress);
-        }
-
-        list.innerHTML = details.map((msg, idx) => {
-          const headers = msg.payload?.headers || [];
-          const get = (name) => (headers.find(h => h.name === name) || {}).value || '';
-          const subject = get('Subject') || '(no subject)';
-          const from    = get('From');
-          const date    = get('Date');
-          const fromName = from.replace(/<[^>]+>/, '').replace(/"/g, '').trim() || from;
-          const snippet = escHtml(msg.snippet || '');
-          const msgUrl  = `https://mail.google.com/mail/u/0/#inbox/${msg.id}`;
-          const isLast  = idx === details.length - 1;
-          const dateStr = date ? new Date(date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-
-          return `
-            <div class="flex flex-col gap-1.5 ${isLast ? '' : 'pb-3 border-b border-gray-800'}">
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-0.5">
-                  <span class="badge-urgent text-xs font-semibold px-2 py-0.5 rounded-full">UNREAD</span>
-                  <span class="text-xs text-gray-500">${escHtml(dateStr)}</span>
-                </div>
-                <div class="text-sm font-medium text-white truncate" title="${escHtml(subject)}">${escHtml(subject)}</div>
-                <div class="text-xs text-gray-400 truncate">From: <span class="text-gray-300">${escHtml(fromName)}</span></div>
-                <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">${snippet}</div>
-              </div>
-              <a href="${msgUrl}" target="_blank" class="gmail-btn self-start">Open in Gmail ↗</a>
-            </div>`;
-        }).join('');
-
-      } catch(e) {
-        console.error('Gmail load error:', e);
-        list.innerHTML = '<div class="text-xs text-red-400 text-center py-4">Failed to load emails</div>';
-      }
+    function opsSignOut() {
+      sessionStorage.removeItem('ops_user_email');
+      _currentUserEmail = null;
+      document.getElementById('signin-wrap').style.display = '';
+      document.getElementById('user-badge').style.display = 'none';
+      const strip = document.getElementById('ops-kpi-strip');
+      if (strip) strip.style.display = 'none';
+      ['section-pl','section-contractor','section-sales'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
     }
 
     // ─── Ops KPIs + P&L ──────────────────────────────────────────────────────

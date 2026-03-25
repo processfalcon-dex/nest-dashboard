@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EPC Solar Comms Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            surface: '#0f1117',
+            card: '#161b27',
+            border: '#1e2535',
+            accent: '#3b82f6',
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body { background-color: #0f1117; font-family: 'Inter', sans-serif; }
+
+    .card {
+      background: #161b27;
+      border: 1px solid #1e2535;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+    }
+
+    .badge-urgent { background: rgba(239,68,68,0.15);  color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+    .badge-review { background: rgba(234,179,8,0.15);  color: #facc15; border: 1px solid rgba(234,179,8,0.3); }
+    .badge-fyi    { background: rgba(34,197,94,0.15);  color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+
+    .action-btn {
+      background: rgba(59,130,246,0.12);
+      color: #60a5fa;
+      border: 1px solid rgba(59,130,246,0.25);
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .action-btn:hover {
+      background: rgba(59,130,246,0.22);
+      border-color: rgba(59,130,246,0.5);
+      color: #93c5fd;
+    }
+
+    .loading-shimmer {
+      background: linear-gradient(90deg, #1c2133 25%, #252e44 50%, #1c2133 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+      display: inline-block;
+      color: transparent;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .pulse-dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      margin-right: 6px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a3550; border-radius: 4px; }
+
+    .panel {
+      background: #161b27;
+      border: 1px solid #1e2535;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 140px);
+      min-height: 500px;
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #1e2535;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-gray-100 p-4 md:p-6">
+
+  <!-- HEADER -->
+  <header class="mb-5">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg,#6366f1,#8b5cf6);">
+          <span style="font-size:18px;">🗨️</span>
+        </div>
+        <div>
+          <h1 class="text-xl font-semibold text-white tracking-tight">EPC Solar Comms Hub</h1>
+          <p class="text-xs text-gray-500 mt-0.5">Tasks · Email · Messages · Process Falcon</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <!-- Gmail connect/status -->
+        <div id="gmail-connect-btn-wrap">
+          <button onclick="gmailSignIn()" class="action-btn" style="padding:7px 16px;font-size:12px;">🔑 Connect Gmail</button>
+        </div>
+        <div id="gmail-status-badge" class="text-xs text-gray-500 bg-gray-800 px-3 py-1 rounded-full" style="display:none;"></div>
+        <!-- Nav back to ops -->
+        <a href="/" class="action-btn" style="padding:7px 14px;font-size:12px;">← Ops Dashboard</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Not connected state -->
+  <div id="not-connected-state" class="card p-10 text-center mb-5">
+    <div class="text-4xl mb-4">🔑</div>
+    <h2 class="text-lg font-semibold text-white mb-2">Connect Gmail to get started</h2>
+    <p class="text-sm text-gray-400 mb-6">Your tasks and priority emails will appear here once you sign in.</p>
+    <button onclick="gmailSignIn()" class="action-btn" style="padding:10px 24px;font-size:14px;">Connect Gmail</button>
+  </div>
+
+  <!-- Main 2-col layout (hidden until connected) -->
+  <div id="comms-layout" style="display:none;" class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+    <!-- LEFT: Tasks -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">✅</span>
+          <h2 class="text-sm font-semibold text-white">My Tasks <span id="tasks-count" class="text-gray-500 font-normal text-xs ml-1"></span></h2>
+        </div>
+        <button onclick="showAddTaskForm()" class="action-btn" style="padding:5px 12px;">+ Add Task</button>
+      </div>
+      <div class="panel-body">
+        <div id="add-task-form" style="display:none;" class="mb-4 flex gap-2">
+          <input id="new-task-note" type="text" placeholder="Task note..."
+            class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+            onkeydown="if(event.key==='Enter') submitNewTask()" />
+          <button onclick="submitNewTask()" class="action-btn" style="padding:6px 14px;">Save</button>
+          <button onclick="hideAddTaskForm()" class="action-btn" style="padding:6px 10px;color:#6b7280;">✕</button>
+        </div>
+        <div id="tasks-list" class="flex flex-col gap-1">
+          <div class="text-xs text-gray-500 text-center py-8">Connect Gmail to load your tasks</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Priority Emails -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">📧</span>
+          <h2 class="text-sm font-semibold text-white">Priority Emails</h2>
+          <span class="pulse-dot ml-1" id="email-live-dot" style="display:none;"></span>
+        </div>
+        <button onclick="loadGmailEmails()" class="action-btn" style="padding:4px 10px;font-size:11px;">↻ Refresh</button>
+      </div>
+      <div class="panel-body" id="gmail-email-list">
+        <div class="text-xs text-gray-500 text-center py-8">Connect Gmail to see emails</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-6 text-center text-xs text-gray-600 pb-4">
+    <a href="/" class="text-gray-500 hover:text-gray-300 transition-colors">← Back to Ops Dashboard</a>
+    <span class="mx-3">·</span>
+    <span>Powered by Process Falcon</span>
+  </footer>
+
+  <script>
+    // ── Constants ──
+    const GLIDE_TOKEN   = '111563eb-e5da-4edd-9c05-ebc1211c9c67';
+    const GLIDE_APP_ID  = 'Tc2JYiVU5TBvWf9VaZJs';
+    const GLIDE_ENDPOINT = 'https://api.glideapp.io/api/function/queryTables';
+    const GLIDE_TABLE_TASKS = 'native-table-efd62ae1-fc15-4a15-b451-9539501c3951';
+    const GMAIL_CLIENT_ID   = '940346836809-oq6r50ogf63irspgn36n13pq8h29ibo4.apps.googleusercontent.com';
+    const GMAIL_SCOPES      = 'https://www.googleapis.com/auth/gmail.readonly';
+
+    const TC = {
+      projectId:          'Name',
+      assignedTo:         'BpSRN',
+      taskNote:           'RAx75',
+      createdAt:          '3blbH',
+      completedAt:        'ovkB0',
+      status:             'ZeCt2',
+      sourceDiscordMsgId: 'XI2kN',
+    };
+
+    let gmailAccessToken  = null;
+    let _currentUserEmail = null;
+    let _tasksData        = [];
+
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    async function fetchAllRows(tableId) {
+      let rows = [], cursor;
+      while (true) {
+        const body = { appID: GLIDE_APP_ID, queries: [{ tableName: tableId, ...(cursor ? { startAt: cursor } : {}) }] };
+        const resp = await fetch(GLIDE_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${GLIDE_TOKEN}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!resp.ok) throw new Error(`Glide API error: ${resp.status}`);
+        const data = await resp.json();
+        const page = Array.isArray(data) ? data[0] : data;
+        if (page?.rows) rows = rows.concat(page.rows);
+        if (page?.next) cursor = page.next; else break;
+      }
+      return rows;
+    }
+
+    // ── Gmail Auth ──
+    (function() {
+      const saved = sessionStorage.getItem('gmail_token');
+      if (saved) {
+        gmailAccessToken = saved;
+        onGmailConnected();
+      }
+    })();
+
+    function gmailSignIn() {
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: GMAIL_CLIENT_ID,
+        scope: GMAIL_SCOPES,
+        callback: (response) => {
+          if (response.error) { console.error('Gmail auth error:', response.error); return; }
+          gmailAccessToken = response.access_token;
+          sessionStorage.setItem('gmail_token', gmailAccessToken);
+          onGmailConnected();
+        },
+      });
+      client.requestAccessToken();
+    }
+
+    async function onGmailConnected() {
+      // Get profile to show email + load tasks
+      try {
+        const profileResp = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile',
+          { headers: { Authorization: `Bearer ${gmailAccessToken}` } });
+        if (!profileResp.ok) { gmailSignOut(); return; }
+        const profile = await profileResp.json();
+        _currentUserEmail = profile.emailAddress;
+
+        // Update UI
+        document.getElementById('gmail-connect-btn-wrap').style.display = 'none';
+        const badge = document.getElementById('gmail-status-badge');
+        badge.style.display = 'inline-block';
+        badge.textContent = profile.emailAddress;
+        badge.style.cursor = 'pointer';
+        badge.title = 'Click to disconnect';
+        badge.onclick = gmailSignOut;
+
+        document.getElementById('not-connected-state').style.display = 'none';
+        document.getElementById('comms-layout').style.display = 'grid';
+        document.getElementById('email-live-dot').style.display = 'inline-block';
+
+        // Load data
+        await Promise.all([
+          loadUserTasks(profile.emailAddress),
+          loadGmailEmails(),
+        ]);
+      } catch(e) {
+        console.error('Profile fetch failed:', e);
+      }
+    }
+
+    function gmailSignOut() {
+      sessionStorage.removeItem('gmail_token');
+      gmailAccessToken = null;
+      _currentUserEmail = null;
+      document.getElementById('gmail-connect-btn-wrap').style.display = '';
+      document.getElementById('gmail-status-badge').style.display = 'none';
+      document.getElementById('not-connected-state').style.display = 'block';
+      document.getElementById('comms-layout').style.display = 'none';
+      document.getElementById('email-live-dot').style.display = 'none';
+    }
+
+    // ── Gmail Emails ──
+    async function loadGmailEmails() {
+      if (!gmailAccessToken) return;
+      const list = document.getElementById('gmail-email-list');
+      list.innerHTML = '<div class="text-xs text-gray-500 text-center py-8 loading-shimmer px-16">Loading emails...</div>';
+
+      try {
+        const query = 'is:unread in:inbox';
+        const listResp = await fetch(
+          `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=20&q=${encodeURIComponent(query)}`,
+          { headers: { Authorization: `Bearer ${gmailAccessToken}` } }
+        );
+        if (listResp.status === 401) { gmailSignOut(); return; }
+        const listData = await listResp.json();
+        const messages = listData.messages || [];
+
+        if (messages.length === 0) {
+          list.innerHTML = '<div class="text-sm text-gray-400 text-center py-10">🎉 No unread emails</div>';
+          return;
+        }
+
+        const details = await Promise.all(messages.map(m =>
+          fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
+            { headers: { Authorization: `Bearer ${gmailAccessToken}` } }
+          ).then(r => r.json())
+        ));
+
+        list.innerHTML = details.map((msg, idx) => {
+          const headers  = msg.payload?.headers || [];
+          const get      = (name) => (headers.find(h => h.name === name) || {}).value || '';
+          const subject  = get('Subject') || '(no subject)';
+          const from     = get('From');
+          const date     = get('Date');
+          const fromName = from.replace(/<[^>]+>/, '').replace(/"/g, '').trim() || from;
+          const snippet  = escHtml(msg.snippet || '');
+          const msgUrl   = `https://mail.google.com/mail/u/0/#inbox/${msg.id}`;
+          const dateStr  = date ? new Date(date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+          const isLast   = idx === details.length - 1;
+
+          return `
+            <div class="${isLast ? '' : 'pb-4 mb-4 border-b border-gray-800'}">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="badge-urgent text-xs font-semibold px-2 py-0.5 rounded-full">UNREAD</span>
+                <span class="text-xs text-gray-500">${escHtml(dateStr)}</span>
+              </div>
+              <div class="text-sm font-medium text-white mb-0.5" title="${escHtml(subject)}">${escHtml(subject)}</div>
+              <div class="text-xs text-gray-400 mb-1">From: <span class="text-gray-300">${escHtml(fromName)}</span></div>
+              <div class="text-xs text-gray-500 mb-2 line-clamp-2">${snippet}</div>
+              <a href="${msgUrl}" target="_blank" class="action-btn">Open in Gmail ↗</a>
+            </div>`;
+        }).join('');
+
+      } catch(e) {
+        console.error('Gmail load error:', e);
+        list.innerHTML = '<div class="text-xs text-red-400 text-center py-8">Failed to load emails</div>';
+      }
+    }
+
+    // ── Tasks ──
+    async function loadUserTasks(email) {
+      _currentUserEmail = email;
+      const list = document.getElementById('tasks-list');
+      if (!list) return;
+      list.innerHTML = '<div class="text-xs text-gray-500 text-center py-8 loading-shimmer px-16">Loading tasks...</div>';
+      try {
+        const rows = await fetchAllRows(GLIDE_TABLE_TASKS);
+        _tasksData = rows.filter(r =>
+          (r[TC.assignedTo] || '').toLowerCase() === email.toLowerCase() &&
+          (r[TC.status] || 'open').toLowerCase() !== 'complete'
+        );
+        _tasksData.sort((a, b) => new Date(a[TC.createdAt]||0) - new Date(b[TC.createdAt]||0));
+        renderTasks();
+      } catch(e) {
+        console.error('Tasks load error:', e);
+        list.innerHTML = '<div class="text-xs text-red-400 text-center py-4">Failed to load tasks</div>';
+      }
+    }
+
+    function renderTasks() {
+      const list  = document.getElementById('tasks-list');
+      const count = document.getElementById('tasks-count');
+      if (!list) return;
+      if (count) count.textContent = _tasksData.length > 0 ? `(${_tasksData.length} open)` : '';
+      if (_tasksData.length === 0) {
+        list.innerHTML = '<div class="text-sm text-gray-400 text-center py-10">🎉 No open tasks</div>';
+        return;
+      }
+      list.innerHTML = _tasksData.map((task, idx) => {
+        const note    = escHtml(task[TC.taskNote] || '(no note)');
+        const projId  = task[TC.projectId] || '';
+        const rowId   = task['$rowID'] || '';
+        const isLast  = idx === _tasksData.length - 1;
+        const daysOpen = task[TC.createdAt]
+          ? Math.floor((Date.now() - new Date(task[TC.createdAt])) / 86400000)
+          : null;
+        const ageClass = daysOpen > 14 ? 'text-red-400' : daysOpen > 7 ? 'text-yellow-400' : 'text-gray-500';
+
+        return `
+          <div class="flex items-start gap-3 py-3 ${isLast ? '' : 'border-b border-gray-800/60'}" id="task-row-${rowId}">
+            <button onclick="completeTask('${rowId}')"
+              class="mt-0.5 w-4 h-4 rounded border border-gray-600 flex-shrink-0 hover:border-green-500 hover:bg-green-500/20 transition-colors"
+              title="Mark complete"></button>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm text-white leading-snug">${note}</div>
+              <div class="flex items-center gap-3 mt-0.5">
+                ${projId ? `<span class="text-xs text-blue-400/70 truncate max-w-[140px]" title="${escHtml(projId)}">📁 project</span>` : ''}
+                <span class="text-xs ${ageClass}">${daysOpen !== null ? `${daysOpen}d old` : ''}</span>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    async function completeTask(rowId) {
+      const el = document.getElementById(`task-row-${rowId}`);
+      if (el) el.style.opacity = '0.4';
+      try {
+        await fetch('https://api.glideapp.io/api/function/mutateTables', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${GLIDE_TOKEN}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            appID: GLIDE_APP_ID,
+            mutations: [{
+              kind: 'set-columns-in-row',
+              tableName: GLIDE_TABLE_TASKS,
+              columnValues: { [TC.status]: 'complete', [TC.completedAt]: new Date().toISOString() },
+              rowID: rowId,
+            }]
+          })
+        });
+        _tasksData = _tasksData.filter(t => t['$rowID'] !== rowId);
+        renderTasks();
+      } catch(e) {
+        console.error('Complete task failed:', e);
+        if (el) el.style.opacity = '1';
+      }
+    }
+
+    function showAddTaskForm() {
+      const form = document.getElementById('add-task-form');
+      if (form) { form.style.display = 'flex'; document.getElementById('new-task-note').focus(); }
+    }
+    function hideAddTaskForm() {
+      const form = document.getElementById('add-task-form');
+      if (form) { form.style.display = 'none'; document.getElementById('new-task-note').value = ''; }
+    }
+    async function submitNewTask() {
+      const input = document.getElementById('new-task-note');
+      const note  = (input?.value || '').trim();
+      if (!note || !_currentUserEmail) return;
+      input.disabled = true;
+      try {
+        await fetch('https://api.glideapp.io/api/function/mutateTables', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${GLIDE_TOKEN}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            appID: GLIDE_APP_ID,
+            mutations: [{
+              kind: 'add-row-to-table',
+              tableName: GLIDE_TABLE_TASKS,
+              columnValues: {
+                [TC.assignedTo]: _currentUserEmail,
+                [TC.taskNote]:   note,
+                [TC.status]:     'open',
+                [TC.createdAt]:  new Date().toISOString(),
+              }
+            }]
+          })
+        });
+        hideAddTaskForm();
+        await loadUserTasks(_currentUserEmail);
+      } catch(e) {
+        console.error('Add task failed:', e);
+      } finally {
+        if (input) input.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
