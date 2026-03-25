@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ops Messages</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1e1f22;
+      color: #dcddde;
+      font-size: 14px;
+      overflow-x: hidden;
+    }
+
+    #header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: #2b2d31;
+      border-bottom: 1px solid #1e1f22;
+    }
+
+    #header h1 {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f2f3f5;
+      letter-spacing: 0.02em;
+    }
+
+    #status {
+      font-size: 11px;
+      color: #949ba4;
+    }
+
+    #status.live::before {
+      content: '● ';
+      color: #23a559;
+    }
+
+    #status.error::before {
+      content: '● ';
+      color: #e24040;
+    }
+
+    #messages {
+      padding: 8px 0;
+    }
+
+    .message {
+      display: flex;
+      gap: 10px;
+      padding: 6px 14px;
+      transition: background 0.1s;
+    }
+
+    .message:hover {
+      background: #2e3035;
+    }
+
+    .message.unread {
+      background: #2a2d3e;
+      border-left: 3px solid #5865f2;
+      padding-left: 11px;
+    }
+
+    .message.unread:hover {
+      background: #2e3145;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #5865f2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .avatar.bot {
+      background: #23a559;
+    }
+
+    .msg-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .msg-meta {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    .msg-author {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f2f3f5;
+    }
+
+    .msg-author.bot-label {
+      color: #23a559;
+    }
+
+    .msg-time {
+      font-size: 11px;
+      color: #949ba4;
+    }
+
+    .msg-content {
+      color: #dcddde;
+      line-height: 1.45;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    .empty-state {
+      padding: 32px 14px;
+      text-align: center;
+      color: #949ba4;
+      font-size: 13px;
+    }
+
+    .error-state {
+      padding: 14px;
+      color: #e24040;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    #refresh-bar {
+      padding: 6px 14px;
+      background: #2b2d31;
+      border-top: 1px solid #1e1f22;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #countdown {
+      font-size: 11px;
+      color: #949ba4;
+    }
+
+    #refresh-btn {
+      font-size: 11px;
+      color: #5865f2;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+
+    #refresh-btn:hover {
+      text-decoration: underline;
+    }
+
+    .no-user {
+      padding: 32px 14px;
+      text-align: center;
+      color: #e24040;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <h1>📬 My Messages</h1>
+  <span id="status">Loading…</span>
+</div>
+
+<div id="messages"></div>
+
+<div id="refresh-bar">
+  <span id="countdown">Refreshes in 30s</span>
+  <button id="refresh-btn" onclick="fetchMessages()">Refresh now</button>
+</div>
+
+<script>
+  // Parse ?user= from query string
+  const params = new URLSearchParams(window.location.search);
+  const userEmail = params.get('user') || '';
+
+  let loadedAt = null;  // ISO timestamp when we first loaded — anything after this is "unread"
+  let countdownSec = 30;
+  let countdownTimer = null;
+  let refreshTimer = null;
+
+  function formatTime(iso) {
+    const d = new Date(iso);
+    const now = new Date();
+    const diffMs = now - d;
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHrs = Math.floor(diffMins / 60);
+    if (diffHrs < 24) return `${diffHrs}h ago`;
+    return d.toLocaleDateString();
+  }
+
+  function initials(name) {
+    return (name || '?').slice(0, 1).toUpperCase();
+  }
+
+  function renderMessages(data) {
+    const container = document.getElementById('messages');
+
+    if (!data.messages || data.messages.length === 0) {
+      container.innerHTML = '<div class="empty-state">No messages yet.</div>';
+      return;
+    }
+
+    // Discord returns newest first — reverse for chronological display
+    const msgs = [...data.messages].reverse();
+
+    container.innerHTML = msgs.map(m => {
+      const isUnread = loadedAt && m.timestamp > loadedAt;
+      const isBot = m.isBot;
+      return `
+        <div class="message${isUnread ? ' unread' : ''}">
+          <div class="avatar${isBot ? ' bot' : ''}">${initials(m.author)}</div>
+          <div class="msg-body">
+            <div class="msg-meta">
+              <span class="msg-author${isBot ? ' bot-label' : ''}">${escHtml(m.author)}${isBot ? ' 🤖' : ''}</span>
+              <span class="msg-time">${formatTime(m.timestamp)}</span>
+            </div>
+            <div class="msg-content">${escHtml(m.content)}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function escHtml(str) {
+    return (str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  async function fetchMessages() {
+    if (!userEmail) {
+      document.getElementById('messages').innerHTML = '<div class="no-user">No user specified. Embed with ?user=email@example.com</div>';
+      document.getElementById('status').textContent = 'No user';
+      return;
+    }
+
+    const statusEl = document.getElementById('status');
+    statusEl.textContent = 'Loading…';
+    statusEl.className = '';
+
+    try {
+      const resp = await fetch(`/api/messages?user=${encodeURIComponent(userEmail)}`);
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        throw new Error(data.error || `HTTP ${resp.status}`);
+      }
+
+      // On first load, set the "loaded at" marker so new messages show as unread
+      if (!loadedAt) {
+        loadedAt = data.fetchedAt;
+      }
+
+      renderMessages(data);
+
+      statusEl.textContent = 'Live';
+      statusEl.className = 'live';
+
+    } catch (err) {
+      document.getElementById('messages').innerHTML = `<div class="error-state">Failed to load messages: ${escHtml(err.message)}</div>`;
+      statusEl.textContent = 'Error';
+      statusEl.className = 'error';
+    }
+
+    resetCountdown();
+  }
+
+  function resetCountdown() {
+    clearInterval(countdownTimer);
+    clearTimeout(refreshTimer);
+    countdownSec = 30;
+    document.getElementById('countdown').textContent = `Refreshes in ${countdownSec}s`;
+
+    countdownTimer = setInterval(() => {
+      countdownSec--;
+      document.getElementById('countdown').textContent = `Refreshes in ${countdownSec}s`;
+      if (countdownSec <= 0) clearInterval(countdownTimer);
+    }, 1000);
+
+    refreshTimer = setTimeout(fetchMessages, 30000);
+  }
+
+  fetchMessages();
+</script>
+</body>
+</html>
