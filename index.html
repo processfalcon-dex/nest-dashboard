@@ -1519,22 +1519,46 @@
       container.innerHTML = '<div class="text-xs text-gray-500 loading-shimmer px-10 py-2 text-center">Loading...</div>';
 
       try {
-        const resp = await fetch('https://api.glideapp.io/api/function/queryTables', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${GLIDE_TOKEN}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ appID: GLIDE_APP_ID, queries: [{ tableName: 'native-table-9DBHakVNiyCJ24SCuO9c' }] })
-        });
-        const data = await resp.json();
-        const rows = Array.isArray(data) ? (data[0] || {}).rows || [] : [];
+        // Fetch scheduled work + contractors table in parallel
+        const [swResp, crewResp] = await Promise.all([
+          fetch('https://api.glideapp.io/api/function/queryTables', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${GLIDE_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ appID: GLIDE_APP_ID, queries: [{ tableName: 'native-table-9DBHakVNiyCJ24SCuO9c' }] })
+          }),
+          fetch('https://api.glideapp.io/api/function/queryTables', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${GLIDE_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ appID: GLIDE_APP_ID, queries: [{ tableName: 'native-table-O6GgiSELTGKhf46nikQF' }] })
+          })
+        ]);
+        const [swData, crewData] = await Promise.all([swResp.json(), crewResp.json()]);
+        const rows = Array.isArray(swData) ? (swData[0] || {}).rows || [] : [];
+        const crewList = Array.isArray(crewData) ? (crewData[0] || {}).rows || [] : [];
+
+        // If contractor (not manager), filter to their crew only
+        const isMgr = _userPerms.admin || _userPerms.contractorManager;
+        let crewFilter = null;
+        if (!isMgr && _currentUserEmail) {
+          const myCrewRow = crewList.find(c =>
+            (c['3eLFi'] || '').toLowerCase() === _currentUserEmail.toLowerCase() ||
+            (c['KCKuI'] || '').toLowerCase() === _currentUserEmail.toLowerCase()
+          );
+          crewFilter = myCrewRow ? myCrewRow['NCyrV'] : null;
+          if (!crewFilter) {
+            container.innerHTML = '<div class="text-xs text-gray-400 text-center py-4">No crew found for your email. Contact your manager.</div>';
+            return;
+          }
+        }
 
         const now = new Date();
         const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
-        const installs = rows.filter(r => r.ZOXBN === 'Installation');
-        const inspections = rows.filter(r => r.ZOXBN === 'Inspection');
-        const rollbacks = rows.filter(r => (r.ZOXBN || '').toLowerCase().includes('roll'));
+        const installs   = rows.filter(r => r.ZOXBN === 'Installation'   && (!crewFilter || r.ZEBRm === crewFilter));
+        const inspections = rows.filter(r => r.ZOXBN === 'Inspection'   && (!crewFilter || r.ZEBRm === crewFilter));
+        const rollbacks  = rows.filter(r => (r.ZOXBN||'').toLowerCase().includes('roll') && (!crewFilter || r.ZEBRm === crewFilter));
 
         // Per-crew stats
         const crewStats = {};
@@ -1562,10 +1586,6 @@
           crewStats[crew].inspTotal = (crewStats[crew].inspTotal || 0) + 1;
           if (r.lbvWf === 'Failed') crewStats[crew].inspFails = (crewStats[crew].inspFails || 0) + 1;
         }
-
-        // If contractor (not manager), filter to their crew
-        const isMgr = _userPerms.admin || _userPerms.contractorManager;
-        const userEmail = _currentUserEmail;
 
         const sorted = Object.entries(crewStats)
           .sort((a, b) => b[1].installs - a[1].installs)
