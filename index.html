@@ -1624,12 +1624,14 @@
         setTrendKpi('kpi-revisions', rvR30, 'kpi-revisions-sub',
           `${rvPrev} prior 30d`, trend(rvR30, rvPrev, true));
 
-        // ── Fail Rate — QUALITY (rolling 30d, fails per install) ──
-        const frR30  = iThis > 0 ? (fR30/Math.max(iThis,1)).toFixed(2) : '—';
-        const frPrev = iLast > 0 ? (fPrev/Math.max(iLast,1)).toFixed(2) : '—';
-        const frTrend = (iThis > 0 && iLast > 0) ? trend(parseFloat(frR30), parseFloat(frPrev), true) : '';
-        setTrendKpi('kpi-fail-rate', frR30, 'kpi-fail-rate-sub',
-          `${frPrev} prior 30d`, frTrend);
+        // ── Fail Rate — QUALITY (rolling 30d, inspection fails as % of installs) ──
+        const installs30 = installs.filter(r => rolling30(r['3Df4p'])).length;
+        const installs30prev = installs.filter(r => rollingPrior30(r['3Df4p'])).length;
+        const frR30  = installs30     > 0 ? Math.round(fR30 /installs30     *100) : null;
+        const frPrev = installs30prev > 0 ? Math.round(fPrev/installs30prev *100) : null;
+        const frTrend = (frR30 !== null && frPrev !== null) ? trend(frR30, frPrev, true) : '';
+        setTrendKpi('kpi-fail-rate', frR30 !== null ? `${frR30}%` : '—', 'kpi-fail-rate-sub',
+          frPrev !== null ? `${frPrev}% prior 30d` : 'No data', frTrend);
 
         // ── Sparklines: 3 rolling 30d buckets (90d → 60d, 60d → 30d, 30d → now) ──
         const r60start  = new Date(now.getTime() - 60*24*3600*1000);

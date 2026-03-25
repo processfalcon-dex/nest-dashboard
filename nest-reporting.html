@@ -73,14 +73,14 @@
     /* KPI row */
     .kpi-row {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(7, 1fr);
       gap: 14px;
       margin-bottom: 20px;
     }
-    @media (max-width: 900px) {
-      .kpi-row { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 1100px) {
+      .kpi-row { grid-template-columns: repeat(4, 1fr); }
     }
-    @media (max-width: 500px) {
+    @media (max-width: 700px) {
       .kpi-row { grid-template-columns: repeat(2, 1fr); }
     }
     .stat-card {
@@ -233,6 +233,7 @@
     <div class="stat-card" id="kpi-overdue"><div class="label">Overdue Actions</div><div class="value">—</div></div>
     <div class="stat-card" id="kpi-alerts"><div class="label">Install Alerts</div><div class="value">—</div></div>
     <div class="stat-card" id="kpi-service"><div class="label">Service Needed</div><div class="value">—</div></div>
+    <div class="stat-card" id="kpi-inspfail"><div class="label">Insp. Fail Projects</div><div class="value">—</div><div class="value-sub" style="font-size:13px;color:#6b7280;margin-top:2px;">—% of active</div></div>
     <div class="stat-card" id="kpi-welcome"><div class="label">Welcome Calls Pending</div><div class="value">—</div></div>
   </div>
 
@@ -516,6 +517,12 @@ function renderKPI(rows) {
   const service = rows.filter(r => isTruthy(g(r, "serviceNeeded")));
   const welcomePending = active.filter(r => !isTruthy(g(r, "welcomeCall")));
 
+  // Unique projects with inspectionFail = true (regardless of how many times they actually failed)
+  const inspFail = rows.filter(r => isTruthy(g(r, "inspectionFail")));
+  const inspFailPct = active.length > 0
+    ? Math.round((inspFail.length / active.length) * 100)
+    : 0;
+
   const kpis = [
     { id: "kpi-active", val: active.length, alert: false },
     { id: "kpi-hold", val: onHold.length, alert: onHold.length > 0 },
@@ -534,6 +541,12 @@ function renderKPI(rows) {
       el.className = "stat-card " + (k.alert ? "stat-red" : "stat-green");
     }
   });
+
+  // Inspection fail card — special handling (count + % sub-label)
+  const inspEl = document.getElementById("kpi-inspfail");
+  inspEl.querySelector(".value").textContent = inspFail.length;
+  inspEl.querySelector(".value-sub").textContent = inspFailPct + "% of active";
+  inspEl.className = "stat-card " + (inspFail.length > 0 ? "stat-red" : "stat-green");
 }
 
 // ── Overdue Table ──
