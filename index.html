@@ -939,16 +939,20 @@
         const rows = await fetchAllRows();
         const now  = new Date();
 
-        const thisWeek = getWeekBounds(0);
-        const nextWeek = getWeekBounds(1);
-        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const thisWeek    = getWeekBounds(0);
+        const nextWeek    = getWeekBounds(1);
+        const lastWeek    = getWeekBounds(-1);
+        const sevenDaysAgo  = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
 
         let activeJobs       = 0;
         let overdueCount     = 0;
         let atRiskCount      = 0;
         let installsThisWeek = 0;
         let installsNextWeek = 0;
+        let installsLastWeek = 0;
         let submissions7d    = 0;
+        let submissionsPrev7d = 0;
         let systemSizeSum    = 0;
         let systemSizeCount  = 0;
 
@@ -990,10 +994,11 @@
 
           // Installs: skip here — handled from Scheduled Work table below
 
-          // New submissions (7d)
+          // New submissions (7d + prior 7d for trend)
           const soldDate = parseDate(row[C.soldDate]);
-          if (soldDate && soldDate >= sevenDaysAgo) {
-            submissions7d++;
+          if (soldDate) {
+            if (soldDate >= sevenDaysAgo) submissions7d++;
+            else if (soldDate >= fourteenDaysAgo) submissionsPrev7d++;
           }
         }
 
@@ -1048,6 +1053,7 @@
             if (projectId && !activeProjectIds.has(projectId)) continue;
             if (scheduledStart >= thisWeek.start && scheduledStart <= thisWeek.end) installsThisWeek++;
             if (scheduledStart >= nextWeek.start && scheduledStart <= nextWeek.end) installsNextWeek++;
+            if (scheduledStart >= lastWeek.start && scheduledStart <= lastWeek.end) installsLastWeek++;
           }
         } catch(e) {
           console.warn('Scheduled Work fetch failed:', e);
@@ -1067,9 +1073,32 @@
         setKpi('kpi-active-jobs', activeJobs, 'kpi-active-jobs-sub', `${rows.length} total projects`, 'text-gray-400');
         setKpi('kpi-stalled', overdueCount, 'kpi-stalled-sub', 'Past SLA deadline', overdueCount > 0 ? 'text-red-400' : 'text-gray-400');
         setKpi('kpi-atrisk', atRiskCount, 'kpi-atrisk-sub', '>75% of SLA elapsed', atRiskCount > 0 ? 'text-yellow-400' : 'text-gray-400');
-        setKpi('kpi-installs-this-week', installsThisWeek, 'kpi-installs-this-week-sub', 'Current Mon–Sun', 'text-blue-400');
-        setKpi('kpi-installs-next-week', installsNextWeek, 'kpi-installs-next-week-sub', 'Scheduled', 'text-blue-400');
-        setKpi('kpi-submissions-7d', submissions7d, 'kpi-submissions-7d-sub', 'Last 7 days', submissions7d > 0 ? 'text-green-400' : 'text-gray-400');
+        // Trend helper for main KPI strip
+        const trendBadge = (curr, prev, lowerIsBetter=false) => {
+          if (!prev || prev === 0) return '';
+          const delta = curr - prev;
+          if (delta === 0) return '';
+          const pct = Math.abs(Math.round(delta/prev*100));
+          const good = lowerIsBetter ? delta < 0 : delta > 0;
+          return ` <span style="font-size:11px;font-weight:600;color:${good?'#4ade80':'#f87171'}">${delta>0?'↑':'↓'}${pct}%</span>`;
+        };
+
+        const setKpiTrend = (valId, val, subId, subText, subClass, trendHtml) => {
+          const el = document.getElementById(valId);
+          if (el) { el.innerHTML = `${val}${trendHtml}`; el.classList.remove('loading-shimmer'); }
+          const s = document.getElementById(subId);
+          if (s) { s.textContent = subText; s.className = `text-xs mt-1 ${subClass||'text-gray-400'}`; }
+        };
+
+        setKpiTrend('kpi-installs-this-week', installsThisWeek, 'kpi-installs-this-week-sub',
+          `${installsLastWeek} last week`, 'text-blue-400',
+          trendBadge(installsThisWeek, installsLastWeek, false));
+        setKpiTrend('kpi-installs-next-week', installsNextWeek, 'kpi-installs-next-week-sub',
+          `${installsThisWeek} this week`, 'text-blue-400',
+          trendBadge(installsNextWeek, installsThisWeek, false));
+        setKpiTrend('kpi-submissions-7d', submissions7d, 'kpi-submissions-7d-sub',
+          `${submissionsPrev7d} prior 7 days`, submissions7d > 0 ? 'text-green-400' : 'text-gray-400',
+          trendBadge(submissions7d, submissionsPrev7d, false));
 
         // ── Stalled Projects table ──
         const countEl = document.getElementById('stalled-count');
