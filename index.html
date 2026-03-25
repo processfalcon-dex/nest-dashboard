@@ -239,17 +239,47 @@
 
   <!-- OPS KPI STRIP — shown after auth, role-gated -->
   <div id="ops-kpi-strip" style="display:none;" class="mt-4">
-    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+    <!-- Row 1: Inspection pass rates (project × attempt, sourced from Scheduled Work) -->
+    <div class="mb-1 mt-1 text-xs text-gray-600 font-semibold uppercase tracking-wider pl-1">Inspection Performance · Rolling 30d · Project-Level</div>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-3">
+      <div class="stat-card">
+        <div class="text-xs text-gray-500 mb-1">🔬 Projects Inspected</div>
+        <div id="kpi-insp-projects" class="text-2xl font-bold text-white">—</div>
+        <div id="kpi-insp-projects-sub" class="text-xs text-gray-500 mt-1">Had ≥1 inspection</div>
+      </div>
+      <div class="stat-card" style="border-color: rgba(74,222,128,0.3);">
+        <div class="text-xs text-gray-500 mb-1">✅ 1st Attempt Pass</div>
+        <div id="kpi-pass-rate-1" class="text-2xl font-bold text-green-400">—</div>
+        <div id="kpi-pass-rate-1-sub" class="text-xs text-gray-500 mt-1">Passed on first try</div>
+      </div>
+      <div class="stat-card" style="border-color: rgba(250,204,21,0.3);">
+        <div class="text-xs text-gray-500 mb-1">🔁 2nd Attempt Pass</div>
+        <div id="kpi-pass-rate-2" class="text-2xl font-bold text-yellow-400">—</div>
+        <div id="kpi-pass-rate-2-sub" class="text-xs text-gray-500 mt-1">Passed on 2nd try</div>
+      </div>
+      <div class="stat-card" style="border-color: rgba(251,146,60,0.3);">
+        <div class="text-xs text-gray-500 mb-1">🎯 3rd+ Attempt Pass</div>
+        <div id="kpi-pass-rate-3" class="text-2xl font-bold text-orange-400">—</div>
+        <div id="kpi-pass-rate-3-sub" class="text-xs text-gray-500 mt-1">Passed on 3rd+ try</div>
+      </div>
+      <div class="stat-card" style="border-color: rgba(239,68,68,0.3);">
+        <div class="text-xs text-gray-500 mb-1">❌ Project Fail %</div>
+        <div id="kpi-project-fail-pct" class="text-2xl font-bold text-red-400">—</div>
+        <div id="kpi-project-fail-pct-sub" class="text-xs text-gray-500 mt-1">Unique projects only</div>
+      </div>
+      <div class="stat-card">
+        <div class="text-xs text-gray-500 mb-1">📊 Raw Fail %</div>
+        <div id="kpi-raw-fail-pct" class="text-2xl font-bold text-white">—</div>
+        <div id="kpi-raw-fail-pct-sub" class="text-xs text-gray-500 mt-1">All events incl. repeats</div>
+        <div id="spark-fail-rate" class="flex items-end gap-0.5 mt-2 h-5"></div>
+      </div>
+    </div>
+    <!-- Row 2: Other quality metrics -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
       <div class="stat-card">
         <div class="text-xs text-gray-500 mb-1">📦 Installs</div>
         <div id="kpi-installs-30d" class="text-2xl font-bold text-white">—</div>
         <div id="kpi-installs-30d-sub" class="text-xs text-gray-500 mt-1">This month</div>
-      </div>
-      <div class="stat-card">
-        <div class="text-xs text-gray-500 mb-1">❌ Insp. Fails</div>
-        <div id="kpi-insp-fails" class="text-2xl font-bold text-red-400">—</div>
-        <div id="kpi-insp-fails-sub" class="text-xs text-gray-500 mt-1">Rolling 30d</div>
-        <div id="spark-insp-fails" class="flex items-end gap-0.5 mt-2 h-5"></div>
       </div>
       <div class="stat-card">
         <div class="text-xs text-gray-500 mb-1">👷 Installer Error %</div>
@@ -270,15 +300,10 @@
         <div id="spark-revisions" class="flex items-end gap-0.5 mt-2 h-5"></div>
       </div>
       <div class="stat-card">
-        <div class="text-xs text-gray-500 mb-1">📊 Fail Rate</div>
-        <div id="kpi-fail-rate" class="text-2xl font-bold text-white">—</div>
-        <div id="kpi-fail-rate-sub" class="text-xs text-gray-500 mt-1">Fail events per install</div>
-        <div id="spark-fail-rate" class="flex items-end gap-0.5 mt-2 h-5"></div>
-      </div>
-      <div class="stat-card">
-        <div class="text-xs text-gray-500 mb-1">🏠 Projects w/ Fails</div>
-        <div id="kpi-unique-fail-projects" class="text-2xl font-bold text-red-400">—</div>
-        <div id="kpi-unique-fail-projects-sub" class="text-xs text-gray-500 mt-1">Rolling 30d</div>
+        <div class="text-xs text-gray-500 mb-1">❌ Insp. Fail Events</div>
+        <div id="kpi-insp-fails" class="text-2xl font-bold text-red-400">—</div>
+        <div id="kpi-insp-fails-sub" class="text-xs text-gray-500 mt-1">Rolling 30d</div>
+        <div id="spark-insp-fails" class="flex items-end gap-0.5 mt-2 h-5"></div>
       </div>
     </div>
   </div>
@@ -1629,34 +1654,146 @@
         setTrendKpi('kpi-revisions', rvR30, 'kpi-revisions-sub',
           `${rvPrev} prior 30d`, trend(rvR30, rvPrev, true));
 
-        // ── Fail Rate — QUALITY (rolling 30d, inspection fail events as % of installs) ──
-        const installs30 = installs.filter(r => rolling30(r['3Df4p'])).length;
-        const installs30prev = installs.filter(r => rollingPrior30(r['3Df4p'])).length;
-        const frR30  = installs30     > 0 ? Math.round(fR30 /installs30     *100) : null;
-        const frPrev = installs30prev > 0 ? Math.round(fPrev/installs30prev *100) : null;
-        const frTrend = (frR30 !== null && frPrev !== null) ? trend(frR30, frPrev, true) : '';
-        setTrendKpi('kpi-fail-rate', frR30 !== null ? `${frR30}%` : '—', 'kpi-fail-rate-sub',
-          frPrev !== null ? `${frPrev}% prior 30d` : 'No data', frTrend);
+        // ── Inspection Pass Rates — project-by-attempt (the right way) ──
+        //
+        // METHOD:
+        // 1. Find all Scheduled Work rows where ZOXBN = 'Inspection', scheduled in rolling 30d
+        // 2. Group by project (Name field). Sort each project's inspections by date (asc) → that's attempt order.
+        // 3. For each project, cross-reference the Inspection Fails table (also sorted by date asc).
+        //    - The fails table has one row per fail event. If a project has 2 fail rows and 2 inspection rows,
+        //      attempt 1 = fail, attempt 2 = fail. If it has 1 fail row and 2 inspection rows, attempt 1 = fail, attempt 2 = pass.
+        //    - A project "passed" on attempt N if it has exactly (N-1) fail events and the Nth inspection exists.
+        //
+        // This gives us true 1st/2nd/3rd attempt pass rates, project-by-project.
 
-        // ── Unique Projects w/ Fails — how many distinct projects had ≥1 fail (rolling 30d) ──
-        // This tells you if a high fail rate is from many projects or one repeat offender
-        const uniqueFailProjectIds30 = new Set(
-          failRows.filter(r => rolling30(r.UeWNN) && r.Name).map(r => r.Name)
-        );
-        const uniqueFailPrev = new Set(
-          failRows.filter(r => rollingPrior30(r.UeWNN) && r.Name).map(r => r.Name)
-        );
-        const ufCount = uniqueFailProjectIds30.size;
-        const ufPrev  = uniqueFailPrev.size;
-        const ufPct   = installs30 > 0 ? Math.round(ufCount / installs30 * 100) : 0;
-        const ufPctPrev = installs30prev > 0 ? Math.round(ufPrev / installs30prev * 100) : 0;
-        setTrendKpi('kpi-unique-fail-projects', ufCount, 'kpi-unique-fail-projects-sub',
-          `${ufPct}% of installs · ${ufPrev} prior 30d`, trend(ufCount, ufPrev, true));
+        // Build fail events per project, sorted by date
+        const failsByProject = {};
+        for (const f of failRows) {
+          const pid = f.Name;
+          if (!pid) continue;
+          if (!failsByProject[pid]) failsByProject[pid] = [];
+          failsByProject[pid].push(f);
+        }
+        // Sort each project's fails ascending by date
+        for (const pid of Object.keys(failsByProject)) {
+          failsByProject[pid].sort((a, b) => new Date(a.UeWNN||0) - new Date(b.UeWNN||0));
+        }
 
-        // ── Sparklines: 3 rolling 30d buckets (90d → 60d, 60d → 30d, 30d → now) ──
+        // Get all inspection SW rows in the rolling 30d window
+        const inspectionRows30 = swRows.filter(r =>
+          (r.ZOXBN || '').toString().trim() === 'Inspection' && rolling30(r['3Df4p'])
+        );
+
+        // Group inspections by project, sorted by date
+        const inspsByProject = {};
+        for (const r of inspectionRows30) {
+          const pid = r.Name;
+          if (!pid) continue;
+          if (!inspsByProject[pid]) inspsByProject[pid] = [];
+          inspsByProject[pid].push(r);
+        }
+        for (const pid of Object.keys(inspsByProject)) {
+          inspsByProject[pid].sort((a, b) => new Date(a['3Df4p']||0) - new Date(b['3Df4p']||0));
+        }
+
+        // For each project with ≥1 inspection in period, determine outcome by attempt
+        // attempt1Pass = passed on attempt 1 (no prior fail events before first inspection)
+        // attempt2Pass = had exactly 1 fail, then passed on 2nd inspection
+        // attempt3Pass = had ≥2 fails, then eventually passed
+        let attempt1Pass = 0, attempt1Fail = 0;
+        let attempt2Pass = 0, attempt2Fail = 0;
+        let attempt3Pass = 0, attempt3Fail = 0;
+        let totalProjectsInspected = 0;
+        let projectsWithAnyFail = 0;  // unique projects (1 counted regardless of repeats)
+        let totalFailEvents30 = fR30;  // all fail events in period (already computed)
+
+        for (const [pid, insps] of Object.entries(inspsByProject)) {
+          totalProjectsInspected++;
+          const fails = failsByProject[pid] || [];
+          // How many fail events does this project have total?
+          const totalFails = fails.length;
+          // Determine outcome on each attempt:
+          // - Attempt N outcome: if the project has N or more fail events, attempt N = fail; else = pass
+          // First attempt:
+          if (totalFails === 0) {
+            // Passed on first try
+            attempt1Pass++;
+          } else {
+            attempt1Fail++;
+            projectsWithAnyFail++;
+            // Did they eventually pass on 2nd attempt?
+            if (insps.length >= 2) {
+              if (totalFails === 1) {
+                attempt2Pass++;
+              } else {
+                attempt2Fail++;
+                // 3rd attempt
+                if (insps.length >= 3) {
+                  if (totalFails === 2) {
+                    attempt3Pass++;
+                  } else {
+                    attempt3Fail++;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        const pct = (n, d) => d > 0 ? Math.round(n / d * 100) : null;
+        const fmtPct = v => v !== null ? `${v}%` : '—';
+
+        const p1Rate = pct(attempt1Pass, totalProjectsInspected);
+        const p2Total = attempt2Pass + attempt2Fail;
+        const p2Rate  = pct(attempt2Pass, p2Total);
+        const p3Total = attempt3Pass + attempt3Fail;
+        const p3Rate  = pct(attempt3Pass, p3Total);
+
+        // Unique project fail % (1 project counted once regardless of repeat fails)
+        const uniqueProjectFailPct = pct(projectsWithAnyFail, totalProjectsInspected);
+
+        // Raw fail % (all fail events ÷ total inspections in period)
+        const totalInspEvents = inspectionRows30.length;
+        const rawFailPct = pct(totalFailEvents30, totalInspEvents > 0 ? totalInspEvents : null);
+
+        // Populate KPI cards
+        setTrendKpi('kpi-insp-projects', totalProjectsInspected, 'kpi-insp-projects-sub',
+          `${totalInspEvents} total insp. events`, '');
+        setTrendKpi('kpi-pass-rate-1',
+          fmtPct(p1Rate),
+          'kpi-pass-rate-1-sub',
+          `${attempt1Pass} passed / ${totalProjectsInspected} projects`, '');
+        setTrendKpi('kpi-pass-rate-2',
+          p2Total > 0 ? fmtPct(p2Rate) : 'N/A',
+          'kpi-pass-rate-2-sub',
+          p2Total > 0 ? `${attempt2Pass} passed / ${p2Total} reached 2nd` : 'No 2nd attempts', '');
+        setTrendKpi('kpi-pass-rate-3',
+          p3Total > 0 ? fmtPct(p3Rate) : 'N/A',
+          'kpi-pass-rate-3-sub',
+          p3Total > 0 ? `${attempt3Pass} passed / ${p3Total} reached 3rd` : 'No 3rd attempts', '');
+        setTrendKpi('kpi-project-fail-pct',
+          fmtPct(uniqueProjectFailPct),
+          'kpi-project-fail-pct-sub',
+          `${projectsWithAnyFail} of ${totalProjectsInspected} projects`, '');
+        setTrendKpi('kpi-raw-fail-pct',
+          rawFailPct !== null ? fmtPct(rawFailPct) : '—',
+          'kpi-raw-fail-pct-sub',
+          `${totalFailEvents30} fails / ${totalInspEvents} events`, '');
+
+        // ── Raw fail sparkline (all events vs inspections, 3 rolling 30d buckets) ──
         const r60start  = new Date(now.getTime() - 60*24*3600*1000);
-        const r90end    = r60start;
+        const inspEvents90to60 = swRows.filter(r =>
+          (r.ZOXBN||'').trim() === 'Inspection' && inPeriod(r['3Df4p'], r90start, r60start)).length;
+        const fails90to60 = bucket(failRows, 'UeWNN', r90start, r60start, null);
+        const inspEvents60to30 = swRows.filter(r =>
+          (r.ZOXBN||'').trim() === 'Inspection' && inPeriod(r['3Df4p'], r60start, r30start)).length;
+        renderSpark('spark-fail-rate', [
+          inspEvents90to60 > 0 ? Math.round(fails90to60/inspEvents90to60*100) : 0,
+          inspEvents60to30 > 0 ? Math.round(fPrev/inspEvents60to30*100) : 0,
+          rawFailPct || 0
+        ], true);
 
+        // ── Sparklines: 3 rolling 30d buckets (90d→60d, 60d→30d, 30d→now) ──
         const bucket = (rows, dateField, start, end, filterFn) =>
           rows.filter(r => {
             if (!r[dateField]) return false;
@@ -1668,8 +1805,7 @@
           if (!el) return;
           const max = Math.max(...vals, 1);
           const colors = vals.map((v, i) => {
-            if (i < vals.length - 1) return '#374151'; // historical = gray
-            // Latest bar: green if improved vs prior, red if worsened
+            if (i < vals.length - 1) return '#374151';
             const prev = vals[i-1] ?? null;
             if (prev === null) return '#6b7280';
             const improved = lowerIsBetter ? v <= prev : v >= prev;
@@ -1681,7 +1817,6 @@
           }).join('');
         };
 
-        // Compute 3-bucket sparkline data for each quality metric
         renderSpark('spark-insp-fails', [
           bucket(failRows, 'UeWNN', r90start, r60start, null),
           fPrev,
@@ -1704,14 +1839,6 @@
           bucket(revRows, 'y9Erp', r90start, r60start, null),
           rvPrev,
           rvR30
-        ], true);
-
-        const i90 = installs.filter(r => inPeriod(r['3Df4p'], r90start, r60start)).length;
-        const f90 = bucket(failRows, 'UeWNN', r90start, r60start, null);
-        renderSpark('spark-fail-rate', [
-          i90 > 0 ? parseFloat((f90/i90).toFixed(2)) : 0,
-          iLast > 0 ? parseFloat(frPrev) : 0,
-          iThis > 0 ? parseFloat(frR30) : 0
         ], true);
 
         // Show ops strip
