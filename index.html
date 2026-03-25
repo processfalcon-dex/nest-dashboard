@@ -719,8 +719,7 @@
       // Exclude special/batch projects, Guardian Home, and GoodPWR
       if (row['wWhf7'] === true || row['wWhf7'] === 'true' || row['wWhf7'] === 1) return false;
       if (row['YP24o'] === true || row['YP24o'] === 'true' || row['YP24o'] === 1) return false;
-      const rep = (row[C.salesRep] || '').toString().trim().toLowerCase();
-      if (rep.startsWith('guardian')) return false;
+      if (row['ryiGt'] === true || row['ryiGt'] === 'true' || row['ryiGt'] === 1) return false;
       return true;
     }
 
