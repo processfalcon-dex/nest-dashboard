@@ -1780,20 +1780,9 @@
           'kpi-raw-fail-pct-sub',
           `${totalFailEvents30} fails / ${totalInspEvents} events`, '');
 
-        // ── Raw fail sparkline (all events vs inspections, 3 rolling 30d buckets) ──
-        const r60start  = new Date(now.getTime() - 60*24*3600*1000);
-        const inspEvents90to60 = swRows.filter(r =>
-          (r.ZOXBN||'').trim() === 'Inspection' && inPeriod(r['3Df4p'], r90start, r60start)).length;
-        const fails90to60 = bucket(failRows, 'UeWNN', r90start, r60start, null);
-        const inspEvents60to30 = swRows.filter(r =>
-          (r.ZOXBN||'').trim() === 'Inspection' && inPeriod(r['3Df4p'], r60start, r30start)).length;
-        renderSpark('spark-fail-rate', [
-          inspEvents90to60 > 0 ? Math.round(fails90to60/inspEvents90to60*100) : 0,
-          inspEvents60to30 > 0 ? Math.round(fPrev/inspEvents60to30*100) : 0,
-          rawFailPct || 0
-        ], true);
+        // ── Sparkline helpers (must be defined before first use) ──
+        const r60start = new Date(now.getTime() - 60*24*3600*1000);
 
-        // ── Sparklines: 3 rolling 30d buckets (90d→60d, 60d→30d, 30d→now) ──
         const bucket = (rows, dateField, start, end, filterFn) =>
           rows.filter(r => {
             if (!r[dateField]) return false;
@@ -1816,6 +1805,18 @@
             return `<div title="${v}" style="width:8px;height:${h}px;background:${colors[i]};border-radius:2px 2px 0 0;flex-shrink:0;transition:height 0.3s"></div>`;
           }).join('');
         };
+
+        // ── Raw fail sparkline (all events vs inspections, 3 rolling 30d buckets) ──
+        const inspEvents90to60 = swRows.filter(r =>
+          (r.ZOXBN||'').trim() === 'Inspection' && inPeriod(r['3Df4p'], r90start, r60start)).length;
+        const fails90to60 = bucket(failRows, 'UeWNN', r90start, r60start, null);
+        const inspEvents60to30 = swRows.filter(r =>
+          (r.ZOXBN||'').trim() === 'Inspection' && inPeriod(r['3Df4p'], r60start, r30start)).length;
+        renderSpark('spark-fail-rate', [
+          inspEvents90to60 > 0 ? Math.round(fails90to60/inspEvents90to60*100) : 0,
+          inspEvents60to30 > 0 ? Math.round(fPrev/inspEvents60to30*100) : 0,
+          rawFailPct || 0
+        ], true);
 
         renderSpark('spark-insp-fails', [
           bucket(failRows, 'UeWNN', r90start, r60start, null),
