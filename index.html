@@ -239,7 +239,7 @@
 
   <!-- OPS KPI STRIP — shown after auth, role-gated -->
   <div id="ops-kpi-strip" style="display:none;" class="mt-4">
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
       <div class="stat-card">
         <div class="text-xs text-gray-500 mb-1">📦 Installs</div>
         <div id="kpi-installs-30d" class="text-2xl font-bold text-white">—</div>
@@ -272,8 +272,13 @@
       <div class="stat-card">
         <div class="text-xs text-gray-500 mb-1">📊 Fail Rate</div>
         <div id="kpi-fail-rate" class="text-2xl font-bold text-white">—</div>
-        <div id="kpi-fail-rate-sub" class="text-xs text-gray-500 mt-1">Fails per install</div>
+        <div id="kpi-fail-rate-sub" class="text-xs text-gray-500 mt-1">Fail events per install</div>
         <div id="spark-fail-rate" class="flex items-end gap-0.5 mt-2 h-5"></div>
+      </div>
+      <div class="stat-card">
+        <div class="text-xs text-gray-500 mb-1">🏠 Projects w/ Fails</div>
+        <div id="kpi-unique-fail-projects" class="text-2xl font-bold text-red-400">—</div>
+        <div id="kpi-unique-fail-projects-sub" class="text-xs text-gray-500 mt-1">Rolling 30d</div>
       </div>
     </div>
   </div>
@@ -1624,7 +1629,7 @@
         setTrendKpi('kpi-revisions', rvR30, 'kpi-revisions-sub',
           `${rvPrev} prior 30d`, trend(rvR30, rvPrev, true));
 
-        // ── Fail Rate — QUALITY (rolling 30d, inspection fails as % of installs) ──
+        // ── Fail Rate — QUALITY (rolling 30d, inspection fail events as % of installs) ──
         const installs30 = installs.filter(r => rolling30(r['3Df4p'])).length;
         const installs30prev = installs.filter(r => rollingPrior30(r['3Df4p'])).length;
         const frR30  = installs30     > 0 ? Math.round(fR30 /installs30     *100) : null;
@@ -1632,6 +1637,21 @@
         const frTrend = (frR30 !== null && frPrev !== null) ? trend(frR30, frPrev, true) : '';
         setTrendKpi('kpi-fail-rate', frR30 !== null ? `${frR30}%` : '—', 'kpi-fail-rate-sub',
           frPrev !== null ? `${frPrev}% prior 30d` : 'No data', frTrend);
+
+        // ── Unique Projects w/ Fails — how many distinct projects had ≥1 fail (rolling 30d) ──
+        // This tells you if a high fail rate is from many projects or one repeat offender
+        const uniqueFailProjectIds30 = new Set(
+          failRows.filter(r => rolling30(r.UeWNN) && r.Name).map(r => r.Name)
+        );
+        const uniqueFailPrev = new Set(
+          failRows.filter(r => rollingPrior30(r.UeWNN) && r.Name).map(r => r.Name)
+        );
+        const ufCount = uniqueFailProjectIds30.size;
+        const ufPrev  = uniqueFailPrev.size;
+        const ufPct   = installs30 > 0 ? Math.round(ufCount / installs30 * 100) : 0;
+        const ufPctPrev = installs30prev > 0 ? Math.round(ufPrev / installs30prev * 100) : 0;
+        setTrendKpi('kpi-unique-fail-projects', ufCount, 'kpi-unique-fail-projects-sub',
+          `${ufPct}% of installs · ${ufPrev} prior 30d`, trend(ufCount, ufPrev, true));
 
         // ── Sparklines: 3 rolling 30d buckets (90d → 60d, 60d → 30d, 30d → now) ──
         const r60start  = new Date(now.getTime() - 60*24*3600*1000);
