@@ -2168,6 +2168,50 @@
     }
 
     // ─── Sales Support Section ────────────────────────────────────────────────
+    function renderRepRealization() {
+      const sel = document.getElementById('realization-window');
+      const days = sel ? sel.value : '30';
+      const repRows = (window._repDataByWindow || {})[days] || [];
+      const rateColor = window._rateColor || (() => 'text-gray-400');
+      const fmtPct = window._fmtPct || (v => v !== null ? `${v}%` : '—');
+      const el = document.getElementById('rep-realization-table');
+      if (!el) return;
+
+      if (repRows.length === 0) {
+        el.innerHTML = `<div class="text-xs text-gray-500">No sales in last ${days} days</div>`;
+        return;
+      }
+
+      el.innerHTML = `<div class="overflow-x-auto">
+        <table class="w-full text-sm border-collapse">
+          <thead>
+            <tr class="border-b border-gray-800">
+              <th class="text-left py-2 px-3 pb-2 text-gray-500 text-xs font-semibold uppercase tracking-wide">Rep</th>
+              <th class="text-center py-2 px-3 pb-2 text-gray-500 text-xs font-semibold uppercase tracking-wide">Sold</th>
+              <th class="text-center py-2 px-3 pb-2 text-gray-500 text-xs font-semibold uppercase tracking-wide">Realized</th>
+              <th class="text-center py-2 px-3 pb-2 text-gray-500 text-xs font-semibold uppercase tracking-wide">Rate</th>
+              <th class="text-left py-2 px-3 pb-2 text-gray-500 text-xs font-semibold uppercase tracking-wide w-40">Progress</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${repRows.map(s => `
+              <tr class="border-b border-gray-800/50 hover:bg-gray-800/20">
+                <td class="py-2 px-3 font-medium text-white">${escHtml(s.rep)}</td>
+                <td class="py-2 px-3 text-center text-gray-300">${s.sold}</td>
+                <td class="py-2 px-3 text-center text-gray-300">${s.realized}</td>
+                <td class="py-2 px-3 text-center font-bold ${rateColor(s.rate)}">${fmtPct(s.rate)}</td>
+                <td class="py-2 px-3">
+                  <div class="h-1.5 bg-gray-800 rounded-full">
+                    <div class="h-1.5 rounded-full ${(s.rate||0) >= 80 ? 'bg-green-500/70' : (s.rate||0) >= 60 ? 'bg-yellow-500/70' : 'bg-red-500/70'}"
+                      style="width:${s.rate || 0}%"></div>
+                  </div>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+    }
+
     async function loadSalesSection() {
       const container = document.getElementById('sales-content');
       if (!container) return;
@@ -2213,19 +2257,26 @@
           return { label, total: cohort.length, realized, rate: pct(realized, cohort.length) };
         });
 
-        // ── Per-rep realization (30d cohort, min 2 sales) ──
-        const repStats = {};
-        for (const r of rows) {
-          const d = soldDate(r); if (!d || d < d30) continue;
-          const rep = (r['yS9Rc'] || 'Unknown').trim();
-          if (!repStats[rep]) repStats[rep] = { sold: 0, realized: 0 };
-          repStats[rep].sold++;
-          if (isRealized(r)) repStats[rep].realized++;
+        // ── Pre-compute per-rep realization for all 3 windows ──
+        const windowCutoffs = { '30': d30, '60': d60, '90': d90 };
+        const repDataByWindow = {};
+        for (const [days, cutoff] of Object.entries(windowCutoffs)) {
+          const stats = {};
+          for (const r of rows) {
+            const d = soldDate(r); if (!d || d < cutoff) continue;
+            const rep = (r['yS9Rc'] || 'Unknown').trim();
+            if (!stats[rep]) stats[rep] = { sold: 0, realized: 0 };
+            stats[rep].sold++;
+            if (isRealized(r)) stats[rep].realized++;
+          }
+          repDataByWindow[days] = Object.entries(stats)
+            .map(([rep, s]) => ({ rep, ...s, rate: pct(s.realized, s.sold) }))
+            .sort((a, b) => b.sold - a.sold);
         }
-        const repRows = Object.entries(repStats)
-          .filter(([, s]) => s.sold >= 1)
-          .map(([rep, s]) => ({ rep, ...s, rate: pct(s.realized, s.sold) }))
-          .sort((a, b) => b.sold - a.sold);
+        // Store on window for the dropdown handler
+        window._repDataByWindow = repDataByWindow;
+        window._rateColor = rateColor;
+        window._fmtPct = fmtPct;
 
         // ── Top reps by active pipeline ──
         const active = rows.filter(r => (r['5sYzg']||'').trim().toLowerCase() === 'active');
@@ -2257,38 +2308,17 @@
                 </div>`).join('')}
             </div>
 
-            <!-- Per-rep realization (30d) -->
-            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">By Rep — Last 30d Cohort</h3>
-            ${repRows.length === 0
-              ? '<div class="text-xs text-gray-500">No sales in last 30 days</div>'
-              : `<div class="overflow-x-auto">
-                <table class="w-full text-sm border-collapse">
-                  <thead>
-                    <tr class="border-b border-gray-800">
-                      <th class="text-left py-2 px-3 pb-2 text-gray-500 text-xs font-semibold uppercase tracking-wide">Rep</th>
-                      <th class="text-center py-2 px-3 pb-2 text-gray-500 text-xs font-semibold uppercase tracking-wide">Sold</th>
-                      <th class="text-center py-2 px-3 pb-2 text-gray-500 text-xs font-semibold uppercase tracking-wide">Realized</th>
-                      <th class="text-center py-2 px-3 pb-2 text-gray-500 text-xs font-semibold uppercase tracking-wide">Rate</th>
-                      <th class="text-left py-2 px-3 pb-2 text-gray-500 text-xs font-semibold uppercase tracking-wide w-40">Progress</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${repRows.map(s => `
-                      <tr class="border-b border-gray-800/50 hover:bg-gray-800/20">
-                        <td class="py-2 px-3 font-medium text-white">${escHtml(s.rep)}</td>
-                        <td class="py-2 px-3 text-center text-gray-300">${s.sold}</td>
-                        <td class="py-2 px-3 text-center text-gray-300">${s.realized}</td>
-                        <td class="py-2 px-3 text-center font-bold ${rateColor(s.rate)}">${fmtPct(s.rate)}</td>
-                        <td class="py-2 px-3">
-                          <div class="h-1.5 bg-gray-800 rounded-full">
-                            <div class="h-1.5 rounded-full ${s.rate >= 80 ? 'bg-green-500/70' : s.rate >= 60 ? 'bg-yellow-500/70' : 'bg-red-500/70'}"
-                              style="width:${s.rate || 0}%"></div>
-                          </div>
-                        </td>
-                      </tr>`).join('')}
-                  </tbody>
-                </table>
-              </div>`}
+            <!-- Per-rep realization — dynamic window selector -->
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wide">By Rep</h3>
+              <select id="realization-window" onchange="renderRepRealization()"
+                style="background:#1c2133;border:1px solid #252e44;color:#d1d5db;font-size:12px;padding:3px 8px;border-radius:6px;cursor:pointer;">
+                <option value="30">Last 30 Days</option>
+                <option value="60">Last 60 Days</option>
+                <option value="90">Last 90 Days</option>
+              </select>
+            </div>
+            <div id="rep-realization-table"></div>
           </div>
 
           <hr style="border-color:#1e2535;margin-bottom:1.5rem;">
@@ -2332,6 +2362,9 @@
               </div>
             </div>
           </div>`;
+
+        // Render the initial rep table (30d default)
+        renderRepRealization();
 
       } catch(e) {
         console.error('Sales section error:', e);
