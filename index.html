@@ -237,6 +237,29 @@
     </div>
   </header>
 
+  <!-- TASKS WIDGET — top priority, shown after Gmail connect -->
+  <div id="action-items-widget" style="display:none;" class="mb-5">
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">✅</span>
+          <h2 class="text-sm font-semibold text-white">My Tasks <span id="tasks-count" class="text-gray-500 font-normal text-xs ml-1"></span></h2>
+        </div>
+        <button onclick="showAddTaskForm()" class="gmail-btn" style="padding:5px 12px;font-size:11px;">+ Add Task</button>
+      </div>
+      <div id="add-task-form" style="display:none;" class="mb-4 flex gap-2">
+        <input id="new-task-note" type="text" placeholder="Task note..."
+          class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+          onkeydown="if(event.key==='Enter') submitNewTask()" />
+        <button onclick="submitNewTask()" class="gmail-btn" style="padding:6px 14px;">Save</button>
+        <button onclick="hideAddTaskForm()" class="gmail-btn" style="padding:6px 10px;color:#6b7280;">✕</button>
+      </div>
+      <div id="tasks-list" class="flex flex-col gap-2">
+        <div class="text-xs text-gray-500 text-center py-4">Connect Gmail to load your tasks</div>
+      </div>
+    </div>
+  </div>
+
   <!-- MAIN GRID -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 
@@ -326,30 +349,6 @@
             <span class="text-gray-500 text-xs loading-shimmer px-20 py-2">Loading state data...</span>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TASKS WIDGET — visible to anyone connected via Gmail -->
-  <div class="mt-5" id="action-items-widget" style="display:none;">
-    <div class="card p-5">
-      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <div class="flex items-center gap-2">
-          <span class="text-lg">✅</span>
-          <h2 class="text-sm font-semibold text-white">My Tasks <span id="tasks-count" class="text-gray-500 font-normal text-xs ml-1"></span></h2>
-        </div>
-        <button onclick="showAddTaskForm()" class="gmail-btn" style="padding:5px 12px;font-size:11px;">+ Add Task</button>
-      </div>
-      <!-- Add task form (hidden by default) -->
-      <div id="add-task-form" style="display:none;" class="mb-4 flex gap-2">
-        <input id="new-task-note" type="text" placeholder="Task note..." 
-          class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-          onkeydown="if(event.key==='Enter') submitNewTask()" />
-        <button onclick="submitNewTask()" class="gmail-btn" style="padding:6px 14px;">Save</button>
-        <button onclick="hideAddTaskForm()" class="gmail-btn" style="padding:6px 10px;color:#6b7280;">✕</button>
-      </div>
-      <div id="tasks-list" class="flex flex-col gap-2">
-        <div class="text-xs text-gray-500 text-center py-4">Connect Gmail to load your tasks</div>
       </div>
     </div>
   </div>
