@@ -458,7 +458,7 @@
       <div class="flex items-center gap-2 mb-5">
         <span class="text-lg">📈</span>
         <h2 class="text-sm font-semibold text-white">Sales Performance</h2>
-        <span class="text-xs text-gray-500 ml-2">Top Reps · Finance Mix · Pipeline by Branch</span>
+        <span class="text-xs text-gray-500 ml-2">Top Reps · Realization Rate · Finance Mix</span>
       </div>
       <div id="sales-content">
         <div class="text-xs text-gray-500 text-center py-4">Connect Gmail to load sales data</div>
@@ -2180,26 +2180,123 @@
           body: JSON.stringify({ appID: GLIDE_APP_ID, queries: [{ tableName: 'native-table-slnGZlKQWqYv6en1oee1' }] })
         });
         const data = await resp.json();
-        const rows = Array.isArray(data) ? (data[0] || {}).rows || [] : [];
-        const active = rows.filter(r => r['5sYzg'] === 'Active');
+        const allRows = Array.isArray(data) ? (data[0] || {}).rows || [] : [];
 
-        // Top reps by active projects
+        // Exclude Guardian, GoodPWR, Special for all sales metrics
+        const rows = allRows.filter(r =>
+          !r['wWhf7'] && !r['YP24o'] && !r['ryiGt']
+        );
+
+        const now = new Date();
+        const d30 = new Date(now - 30*24*3600*1000);
+        const d60 = new Date(now - 60*24*3600*1000);
+        const d90 = new Date(now - 90*24*3600*1000);
+
+        const soldDate = r => { const v = r['AsyNi']; return v ? new Date(v) : null; };
+        const isRealized = r => {
+          const s = (r['5sYzg'] || '').trim().toLowerCase();
+          return s === 'active' || s === 'complete' || s === 'completed';
+        };
+        const pct = (n, d) => d > 0 ? Math.round(n/d*100) : null;
+        const fmtPct = v => v !== null ? `${v}%` : '—';
+
+        // ── Overall realization rates by cohort ──
+        const cohorts = [
+          { label: 'Last 30d', start: d30 },
+          { label: 'Last 60d', start: d60 },
+          { label: 'Last 90d', start: d90 },
+        ];
+
+        const cohortStats = cohorts.map(({ label, start }) => {
+          const cohort = rows.filter(r => { const d = soldDate(r); return d && d >= start; });
+          const realized = cohort.filter(isRealized).length;
+          return { label, total: cohort.length, realized, rate: pct(realized, cohort.length) };
+        });
+
+        // ── Per-rep realization (30d cohort, min 2 sales) ──
+        const repStats = {};
+        for (const r of rows) {
+          const d = soldDate(r); if (!d || d < d30) continue;
+          const rep = (r['yS9Rc'] || 'Unknown').trim();
+          if (!repStats[rep]) repStats[rep] = { sold: 0, realized: 0 };
+          repStats[rep].sold++;
+          if (isRealized(r)) repStats[rep].realized++;
+        }
+        const repRows = Object.entries(repStats)
+          .filter(([, s]) => s.sold >= 1)
+          .map(([rep, s]) => ({ rep, ...s, rate: pct(s.realized, s.sold) }))
+          .sort((a, b) => b.sold - a.sold);
+
+        // ── Top reps by active pipeline ──
+        const active = rows.filter(r => (r['5sYzg']||'').trim().toLowerCase() === 'active');
         const repCount = {};
         const dealerCount = {};
         for (const r of active) {
-          const rep = r['yS9Rc'] || 'Unknown';
-          const dealer = r['G8eYI'] || 'Unknown'; // financeCompany as proxy for dealer
+          const rep = (r['yS9Rc'] || 'Unknown').trim();
+          const dealer = r['G8eYI'] || 'Unknown';
           repCount[rep] = (repCount[rep] || 0) + 1;
           dealerCount[dealer] = (dealerCount[dealer] || 0) + 1;
         }
-
         const topReps = Object.entries(repCount).sort((a,b) => b[1]-a[1]).slice(0,10);
         const topDealers = Object.entries(dealerCount).sort((a,b) => b[1]-a[1]).slice(0,8);
 
+        // ── Color helper for realization rate ──
+        const rateColor = v => v === null ? 'text-gray-500' : v >= 80 ? 'text-green-400' : v >= 60 ? 'text-yellow-400' : 'text-red-400';
+
         container.innerHTML = `
+          <!-- Realization Rate Summary -->
+          <div class="mb-6">
+            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">📈 Realization Rate — Sales Cohorts</h3>
+            <div class="text-xs text-gray-600 mb-3">Active or Completed ÷ Total Sold in period. Excludes Guardian, GoodPWR, Special Projects.</div>
+            <div class="grid grid-cols-3 gap-3 mb-5">
+              ${cohortStats.map(c => `
+                <div class="stat-card text-center">
+                  <div class="text-xs text-gray-500 mb-1">${c.label}</div>
+                  <div class="text-2xl font-bold ${rateColor(c.rate)}">${fmtPct(c.rate)}</div>
+                  <div class="text-xs text-gray-500 mt-1">${c.realized} / ${c.total} sold</div>
+                </div>`).join('')}
+            </div>
+
+            <!-- Per-rep realization (30d) -->
+            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">By Rep — Last 30d Cohort</h3>
+            ${repRows.length === 0
+              ? '<div class="text-xs text-gray-500">No sales in last 30 days</div>'
+              : `<div class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse">
+                  <thead>
+                    <tr class="border-b border-gray-800">
+                      <th class="text-left py-2 px-3 pb-2 text-gray-500 text-xs font-semibold uppercase tracking-wide">Rep</th>
+                      <th class="text-center py-2 px-3 pb-2 text-gray-500 text-xs font-semibold uppercase tracking-wide">Sold</th>
+                      <th class="text-center py-2 px-3 pb-2 text-gray-500 text-xs font-semibold uppercase tracking-wide">Realized</th>
+                      <th class="text-center py-2 px-3 pb-2 text-gray-500 text-xs font-semibold uppercase tracking-wide">Rate</th>
+                      <th class="text-left py-2 px-3 pb-2 text-gray-500 text-xs font-semibold uppercase tracking-wide w-40">Progress</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${repRows.map(s => `
+                      <tr class="border-b border-gray-800/50 hover:bg-gray-800/20">
+                        <td class="py-2 px-3 font-medium text-white">${escHtml(s.rep)}</td>
+                        <td class="py-2 px-3 text-center text-gray-300">${s.sold}</td>
+                        <td class="py-2 px-3 text-center text-gray-300">${s.realized}</td>
+                        <td class="py-2 px-3 text-center font-bold ${rateColor(s.rate)}">${fmtPct(s.rate)}</td>
+                        <td class="py-2 px-3">
+                          <div class="h-1.5 bg-gray-800 rounded-full">
+                            <div class="h-1.5 rounded-full ${s.rate >= 80 ? 'bg-green-500/70' : s.rate >= 60 ? 'bg-yellow-500/70' : 'bg-red-500/70'}"
+                              style="width:${s.rate || 0}%"></div>
+                          </div>
+                        </td>
+                      </tr>`).join('')}
+                  </tbody>
+                </table>
+              </div>`}
+          </div>
+
+          <hr style="border-color:#1e2535;margin-bottom:1.5rem;">
+
+          <!-- Existing: Top Reps + Finance Mix -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Top Reps — Active Projects</h3>
+              <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Top Reps — Active Pipeline</h3>
               <div class="flex flex-col gap-1.5">
                 ${topReps.map(([rep, count], i) => `
                   <div class="flex items-center gap-3">
