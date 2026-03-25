@@ -1519,8 +1519,8 @@
       container.innerHTML = '<div class="text-xs text-gray-500 loading-shimmer px-10 py-2 text-center">Loading...</div>';
 
       try {
-        // Fetch scheduled work + contractors table in parallel
-        const [swResp, crewResp] = await Promise.all([
+        // Fetch scheduled work + contractors + inspection fails in parallel
+        const [swResp, crewResp, failsResp] = await Promise.all([
           fetch('https://api.glideapp.io/api/function/queryTables', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${GLIDE_TOKEN}`, 'Content-Type': 'application/json' },
@@ -1530,11 +1530,51 @@
             method: 'POST',
             headers: { 'Authorization': `Bearer ${GLIDE_TOKEN}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ appID: GLIDE_APP_ID, queries: [{ tableName: 'native-table-O6GgiSELTGKhf46nikQF' }] })
+          }),
+          fetch('https://api.glideapp.io/api/function/queryTables', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${GLIDE_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ appID: GLIDE_APP_ID, queries: [{ tableName: 'native-table-49597bd6-4d8b-4d0d-835f-fda4d4f6f5c6' }] })
           })
         ]);
-        const [swData, crewData] = await Promise.all([swResp.json(), crewResp.json()]);
-        const rows = Array.isArray(swData) ? (swData[0] || {}).rows || [] : [];
-        const crewList = Array.isArray(crewData) ? (crewData[0] || {}).rows || [] : [];
+        const [swData, crewData, failsData] = await Promise.all([swResp.json(), crewResp.json(), failsResp.json()]);
+        const rows     = Array.isArray(swData)    ? (swData[0]    || {}).rows || [] : [];
+        const crewList = Array.isArray(crewData)  ? (crewData[0]  || {}).rows || [] : [];
+        const failRows = Array.isArray(failsData) ? (failsData[0] || {}).rows || [] : [];
+
+        // Build project → crew map from scheduled work (installs)
+        const projectCrewMap = {};
+        for (const r of rows) {
+          if (r.ZOXBN === 'Installation' && r.Name && r.ZEBRm) {
+            projectCrewMap[r.Name] = r.ZEBRm;
+          }
+        }
+
+        // Build fail counts per crew using Inspection Fails table
+        const crewFailMap = {};
+        const crewFailReasons = {};
+        for (const f of failRows) {
+          const projectId = f.Name || '';
+          const crew = projectCrewMap[projectId];
+          if (!crew) continue;
+          if (!crewFailMap[crew]) { crewFailMap[crew] = 0; crewFailReasons[crew] = {}; }
+          crewFailMap[crew]++;
+          // Tally reasons
+          const reasons = [
+            ['installerError','Installer Error','gITvP'],
+            ['codeViolation','Code Violation','nFzyZ'],
+            ['electrical','Electrical','Fof6c'],
+            ['fireSetBacks','Fire Setbacks','NavAY'],
+            ['permitRevision','Permit Revision','BRskE'],
+            ['permitNotOnSite','Permit Not On Site','Rc8n9'],
+            ['missingLabels','Missing Labels','uq88M'],
+          ];
+          for (const [key, label, field] of reasons) {
+            if (f[field]) {
+              crewFailReasons[crew][label] = (crewFailReasons[crew][label] || 0) + 1;
+            }
+          }
+        }
 
         // If contractor (not manager), filter to their crew only
         const isMgr = _userPerms.admin || _userPerms.contractorManager;
@@ -1579,12 +1619,11 @@
           if (crewStats[crew]) crewStats[crew].rollbacks++;
         }
 
-        // Inspection fail rate per crew
-        for (const r of inspections) {
-          const crew = r.ZEBRm || 'Unknown';
-          if (!crewStats[crew]) crewStats[crew] = { installs: 0, thisMonth: 0, lastMonth: 0, deviations: 0, rollbacks: 0, inspFails: 0, inspTotal: 0 };
-          crewStats[crew].inspTotal = (crewStats[crew].inspTotal || 0) + 1;
-          if (r.lbvWf === 'Failed') crewStats[crew].inspFails = (crewStats[crew].inspFails || 0) + 1;
+        // Apply inspection fail counts from the dedicated fails table
+        for (const [crew, failCount] of Object.entries(crewFailMap)) {
+          if (!crewStats[crew]) crewStats[crew] = { installs: 0, thisMonth: 0, lastMonth: 0, deviations: 0, rollbacks: 0 };
+          crewStats[crew].inspFails = failCount;
+          crewStats[crew].failReasons = crewFailReasons[crew] || {};
         }
 
         const sorted = Object.entries(crewStats)
@@ -1605,21 +1644,25 @@
                   <th class="text-center py-2 px-3 pb-3 text-gray-500 text-xs font-semibold uppercase tracking-wide">This Mo.</th>
                   <th class="text-center py-2 px-3 pb-3 text-gray-500 text-xs font-semibold uppercase tracking-wide">Last Mo.</th>
                   <th class="text-center py-2 px-3 pb-3 text-gray-500 text-xs font-semibold uppercase tracking-wide">Total</th>
-                  <th class="text-center py-2 px-3 pb-3 text-gray-500 text-xs font-semibold uppercase tracking-wide">Insp. Fail%</th>
+                  <th class="text-center py-2 px-3 pb-3 text-gray-500 text-xs font-semibold uppercase tracking-wide">Insp. Fails</th>
                   <th class="text-center py-2 px-3 pb-3 text-gray-500 text-xs font-semibold uppercase tracking-wide">Rollbacks</th>
                   <th class="text-center py-2 px-3 pb-3 text-gray-500 text-xs font-semibold uppercase tracking-wide">Deviations</th>
                 </tr>
               </thead>
               <tbody>
                 ${sorted.map(([crew, s]) => {
-                  const failRate = s.inspTotal > 0 ? ((s.inspFails||0)/s.inspTotal*100).toFixed(0) : 0;
-                  const failClass = failRate > 20 ? 'text-red-400 font-bold' : failRate > 10 ? 'text-yellow-400' : 'text-green-400';
+                  const fails = s.inspFails || 0;
+                  const failClass = fails > 5 ? 'text-red-400 font-bold' : fails > 2 ? 'text-yellow-400' : fails > 0 ? 'text-orange-400' : 'text-green-400';
+                  const topReason = s.failReasons ? Object.entries(s.failReasons).sort((a,b)=>b[1]-a[1])[0] : null;
                   return `<tr class="border-b border-gray-800/50 hover:bg-gray-800/20 transition-colors">
                     <td class="py-2 px-3 font-medium text-white">${escHtml(crew)}</td>
                     <td class="py-2 px-3 text-center text-white">${s.thisMonth}</td>
                     <td class="py-2 px-3 text-center text-gray-400">${s.lastMonth}</td>
                     <td class="py-2 px-3 text-center text-gray-300">${s.installs}</td>
-                    <td class="py-2 px-3 text-center"><span class="${failClass}">${failRate}%</span></td>
+                    <td class="py-2 px-3 text-center">
+                      <span class="${failClass}">${fails}</span>
+                      ${topReason ? `<div class="text-xs text-gray-600 mt-0.5">${topReason[0]}</div>` : ''}
+                    </td>
                     <td class="py-2 px-3 text-center ${s.rollbacks > 0 ? 'text-yellow-400 font-bold' : 'text-gray-400'}">${s.rollbacks}</td>
                     <td class="py-2 px-3 text-center ${s.deviations > 0 ? 'text-orange-400' : 'text-gray-400'}">${s.deviations}</td>
                   </tr>`;
