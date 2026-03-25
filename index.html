@@ -1545,18 +1545,28 @@
         const failRows = Array.isArray(failsData) ? (failsData[0] || {}).rows || [] : [];
         const revRows  = Array.isArray(revsData)  ? (revsData[0]  || {}).rows || [] : [];
 
-        // Rolling period boundaries
+        // Period boundaries
         const now  = new Date();
+        // Calendar month (scoreboard: installs, sales)
         const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
         const lastMonthStart = new Date(now.getFullYear(), now.getMonth()-1, 1);
         const lastMonthEnd   = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+        // Rolling 30/60/90 (quality: fails, rollbacks, revisions)
+        const r30start  = new Date(now.getTime() - 30*24*3600*1000);
+        const r30prev   = new Date(now.getTime() - 60*24*3600*1000); // prior 30d window start
+        const r90start  = new Date(now.getTime() - 90*24*3600*1000);
 
         const inPeriod = (dateStr, start, end) => {
           if (!dateStr) return false;
-          try { const d = new Date(dateStr); return d >= start && d <= end; } catch { return false; }
+          try { const d = new Date(dateStr); return d >= start && d <= (end || now); } catch { return false; }
         };
+        // Scoreboard (calendar)
         const thisMonth = d => inPeriod(d, thisMonthStart, now);
         const lastMonth = d => inPeriod(d, lastMonthStart, lastMonthEnd);
+        // Quality (rolling)
+        const rolling30     = d => inPeriod(d, r30start, now);
+        const rollingPrior30 = d => inPeriod(d, r30prev, r30start);
+        const rolling90     = d => inPeriod(d, r90start, now);
 
         // Trend indicator: lowerIsBetter=true means red arrow up is bad
         const trend = (curr, prev, lowerIsBetter=false) => {
@@ -1576,45 +1586,45 @@
           const s = document.getElementById(subId); if (s) s.textContent = subText;
         };
 
-        // ── Installs ──
+        // ── Installs — SCOREBOARD (calendar month) ──
         const installs = swRows.filter(r => r.ZOXBN === 'Installation' && r.lbvWf === 'Complete');
         const iThis = installs.filter(r => thisMonth(r['3Df4p'])).length;
         const iLast = installs.filter(r => lastMonth(r['3Df4p'])).length;
         setTrendKpi('kpi-installs-30d', iThis, 'kpi-installs-30d-sub',
           `${iLast} last month`, trend(iThis, iLast, false));
 
-        // ── Inspection Fails ──
-        const fThis = failRows.filter(r => thisMonth(r.UeWNN)).length;
-        const fLast = failRows.filter(r => lastMonth(r.UeWNN)).length;
-        setTrendKpi('kpi-insp-fails', fThis, 'kpi-insp-fails-sub',
-          `${fLast} last month`, trend(fThis, fLast, true));
+        // ── Inspection Fails — QUALITY (rolling 30d vs prior 30d) ──
+        const fR30  = failRows.filter(r => rolling30(r.UeWNN)).length;
+        const fPrev = failRows.filter(r => rollingPrior30(r.UeWNN)).length;
+        setTrendKpi('kpi-insp-fails', fR30, 'kpi-insp-fails-sub',
+          `${fPrev} prior 30d`, trend(fR30, fPrev, true));
 
-        // ── Installer Errors ──
-        const ieThis = failRows.filter(r => thisMonth(r.UeWNN) && r.gITvP).length;
-        const ieLast = failRows.filter(r => lastMonth(r.UeWNN) && r.gITvP).length;
-        const ieRateThis = fThis > 0 ? Math.round(ieThis/fThis*100) : 0;
-        const ieRateLast = fLast > 0 ? Math.round(ieLast/fLast*100) : 0;
-        setTrendKpi('kpi-installer-errors', `${ieRateThis}%`, 'kpi-installer-errors-sub',
-          `${ieRateLast}% last month`, trend(ieRateThis, ieRateLast, true));
+        // ── Installer Errors — QUALITY (rolling 30d) ──
+        const ieR30  = failRows.filter(r => rolling30(r.UeWNN) && r.gITvP).length;
+        const iePrev = failRows.filter(r => rollingPrior30(r.UeWNN) && r.gITvP).length;
+        const ieRate30  = fR30  > 0 ? Math.round(ieR30/fR30*100)   : 0;
+        const ieRatePrev= fPrev > 0 ? Math.round(iePrev/fPrev*100) : 0;
+        setTrendKpi('kpi-installer-errors', `${ieRate30}%`, 'kpi-installer-errors-sub',
+          `${ieRatePrev}% prior 30d`, trend(ieRate30, ieRatePrev, true));
 
-        // ── Rollbacks ──
-        const rbThis = failRows.filter(r => thisMonth(r.UeWNN) && r.RENYc).length;
-        const rbLast = failRows.filter(r => lastMonth(r.UeWNN) && r.RENYc).length;
-        setTrendKpi('kpi-rollbacks', rbThis, 'kpi-rollbacks-sub',
-          `${rbLast} last month`, trend(rbThis, rbLast, true));
+        // ── Rollbacks — QUALITY (rolling 30d) ──
+        const rbR30  = failRows.filter(r => rolling30(r.UeWNN) && r.RENYc).length;
+        const rbPrev = failRows.filter(r => rollingPrior30(r.UeWNN) && r.RENYc).length;
+        setTrendKpi('kpi-rollbacks', rbR30, 'kpi-rollbacks-sub',
+          `${rbPrev} prior 30d`, trend(rbR30, rbPrev, true));
 
-        // ── Engineering Revisions ──
-        const rvThis = revRows.filter(r => thisMonth(r.y9Erp)).length;
-        const rvLast = revRows.filter(r => lastMonth(r.y9Erp)).length;
-        setTrendKpi('kpi-revisions', rvThis, 'kpi-revisions-sub',
-          `${rvLast} last month`, trend(rvThis, rvLast, true));
+        // ── Engineering Revisions — QUALITY (rolling 30d) ──
+        const rvR30  = revRows.filter(r => rolling30(r.y9Erp)).length;
+        const rvPrev = revRows.filter(r => rollingPrior30(r.y9Erp)).length;
+        setTrendKpi('kpi-revisions', rvR30, 'kpi-revisions-sub',
+          `${rvPrev} prior 30d`, trend(rvR30, rvPrev, true));
 
-        // ── Fail Rate (fails per install) ──
-        const frThis = iThis > 0 ? (fThis/iThis).toFixed(2) : '—';
-        const frLast = iLast > 0 ? (fLast/iLast).toFixed(2) : '—';
-        const frTrend = (iThis > 0 && iLast > 0) ? trend(parseFloat(frThis), parseFloat(frLast), true) : '';
-        setTrendKpi('kpi-fail-rate', frThis, 'kpi-fail-rate-sub',
-          `${frLast} last month`, frTrend);
+        // ── Fail Rate — QUALITY (rolling 30d, fails per install) ──
+        const frR30  = iThis > 0 ? (fR30/Math.max(iThis,1)).toFixed(2) : '—';
+        const frPrev = iLast > 0 ? (fPrev/Math.max(iLast,1)).toFixed(2) : '—';
+        const frTrend = (iThis > 0 && iLast > 0) ? trend(parseFloat(frR30), parseFloat(frPrev), true) : '';
+        setTrendKpi('kpi-fail-rate', frR30, 'kpi-fail-rate-sub',
+          `${frPrev} prior 30d`, frTrend);
 
         // Show ops strip
         const strip = document.getElementById('ops-kpi-strip');
