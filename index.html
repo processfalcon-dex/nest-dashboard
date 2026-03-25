@@ -2115,6 +2115,49 @@
           crewStats[crew].failReasons = crewFailReasons[crew] || {};
         }
 
+        // ── Per-crew 1st pass rate (rolling 30d) ──
+        // For each crew: find all inspection SW rows in 30d assigned to that crew,
+        // group by project, determine if project had 0 fail events before first inspection = 1st pass
+        const now30 = new Date();
+        const r30 = new Date(now30.getTime() - 30*24*3600*1000);
+        const inR30 = d => { if (!d) return false; try { const dt = new Date(d); return dt >= r30 && dt <= now30; } catch { return false; } };
+
+        // Build per-project fail list from failRows (sorted asc)
+        const projFailsSorted = {};
+        for (const f of failRows) {
+          const pid = f.Name; if (!pid) continue;
+          if (!projFailsSorted[pid]) projFailsSorted[pid] = [];
+          projFailsSorted[pid].push(f);
+        }
+        for (const pid of Object.keys(projFailsSorted)) {
+          projFailsSorted[pid].sort((a,b) => new Date(a.UeWNN||0) - new Date(b.UeWNN||0));
+        }
+
+        // Inspection SW rows in rolling 30d, grouped by crew → project
+        const crewInspProjects = {}; // crew → Set of projectIds inspected in 30d
+        for (const r of rows) {
+          if ((r.ZOXBN||'').trim() !== 'Inspection') continue;
+          if (!inR30(r['3Df4p'])) continue;
+          const crew = r.ZEBRm; const pid = r.Name;
+          if (!crew || !pid) continue;
+          if (!crewInspProjects[crew]) crewInspProjects[crew] = new Set();
+          crewInspProjects[crew].add(pid);
+        }
+
+        // For each crew, count projects that had 0 fails before their first inspection = 1st pass
+        for (const [crew, pidSet] of Object.entries(crewInspProjects)) {
+          let pass1 = 0, total = 0;
+          for (const pid of pidSet) {
+            total++;
+            const fails = projFailsSorted[pid] || [];
+            if (fails.length === 0) pass1++; // no fail events at all → passed first time
+          }
+          if (!crewStats[crew]) crewStats[crew] = { installs: 0, thisMonth: 0, lastMonth: 0, deviations: 0, rollbacks: 0 };
+          crewStats[crew].p1Pass = pass1;
+          crewStats[crew].p1Total = total;
+          crewStats[crew].p1Rate = total > 0 ? Math.round(pass1 / total * 100) : null;
+        }
+
         const sorted = Object.entries(crewStats)
           .sort((a, b) => b[1].installs - a[1].installs)
           .slice(0, 15);
@@ -2133,6 +2176,7 @@
                   <th class="text-center py-2 px-3 pb-3 text-gray-500 text-xs font-semibold uppercase tracking-wide">This Mo.</th>
                   <th class="text-center py-2 px-3 pb-3 text-gray-500 text-xs font-semibold uppercase tracking-wide">Last Mo.</th>
                   <th class="text-center py-2 px-3 pb-3 text-gray-500 text-xs font-semibold uppercase tracking-wide">Total</th>
+                  <th class="text-center py-2 px-3 pb-3 text-gray-500 text-xs font-semibold uppercase tracking-wide">✅ 1st Pass Rate</th>
                   <th class="text-center py-2 px-3 pb-3 text-gray-500 text-xs font-semibold uppercase tracking-wide">Insp. Fails</th>
                   <th class="text-center py-2 px-3 pb-3 text-gray-500 text-xs font-semibold uppercase tracking-wide">Rollbacks</th>
                   <th class="text-center py-2 px-3 pb-3 text-gray-500 text-xs font-semibold uppercase tracking-wide">Deviations</th>
@@ -2143,11 +2187,20 @@
                   const fails = s.inspFails || 0;
                   const failClass = fails > 5 ? 'text-red-400 font-bold' : fails > 2 ? 'text-yellow-400' : fails > 0 ? 'text-orange-400' : 'text-green-400';
                   const topReason = s.failReasons ? Object.entries(s.failReasons).sort((a,b)=>b[1]-a[1])[0] : null;
+                  const p1r = s.p1Rate;
+                  const p1Color = p1r === null ? 'text-gray-500'
+                    : p1r >= 85 ? 'text-green-400 font-bold'
+                    : p1r >= 70 ? 'text-yellow-400 font-bold'
+                    : 'text-red-400 font-bold';
+                  const p1Label = p1r !== null
+                    ? `${p1r}% <span class="text-xs text-gray-600">(${s.p1Pass}/${s.p1Total})</span>`
+                    : '<span class="text-gray-600">—</span>';
                   return `<tr class="border-b border-gray-800/50 hover:bg-gray-800/20 transition-colors">
                     <td class="py-2 px-3 font-medium text-white">${escHtml(crew)}</td>
                     <td class="py-2 px-3 text-center text-white">${s.thisMonth}</td>
                     <td class="py-2 px-3 text-center text-gray-400">${s.lastMonth}</td>
                     <td class="py-2 px-3 text-center text-gray-300">${s.installs}</td>
+                    <td class="py-2 px-3 text-center"><span class="${p1Color}">${p1Label}</span></td>
                     <td class="py-2 px-3 text-center">
                       <span class="${failClass}">${fails}</span>
                       ${topReason ? `<div class="text-xs text-gray-600 mt-0.5">${topReason[0]}</div>` : ''}
