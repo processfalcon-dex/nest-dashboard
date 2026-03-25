@@ -237,6 +237,29 @@
     </div>
   </header>
 
+  <!-- TASKS WIDGET — shown after Gmail connect, pinned to top -->
+  <div id="action-items-widget" style="display:none;" class="mb-5">
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">✅</span>
+          <h2 class="text-sm font-semibold text-white">My Tasks <span id="tasks-count" class="text-gray-500 font-normal text-xs ml-1"></span></h2>
+        </div>
+        <button onclick="showAddTaskForm()" class="gmail-btn" style="padding:5px 12px;font-size:11px;">+ Add Task</button>
+      </div>
+      <div id="add-task-form" style="display:none;" class="mb-4 flex gap-2">
+        <input id="new-task-note" type="text" placeholder="Task note..."
+          class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+          onkeydown="if(event.key==='Enter') submitNewTask()" />
+        <button onclick="submitNewTask()" class="gmail-btn" style="padding:6px 14px;">Save</button>
+        <button onclick="hideAddTaskForm()" class="gmail-btn" style="padding:6px 10px;color:#6b7280;">✕</button>
+      </div>
+      <div id="tasks-list" class="flex flex-col gap-2">
+        <div class="text-xs text-gray-500 text-center py-4">Connect Gmail to load your tasks</div>
+      </div>
+    </div>
+  </div>
+
   <!-- OPS KPI STRIP — shown after auth, role-gated -->
   <div id="ops-kpi-strip" style="display:none;" class="mt-4">
     <!-- Row 1: Inspection pass rates (project × attempt, sourced from Scheduled Work) -->
@@ -304,29 +327,6 @@
         <div id="kpi-insp-fails" class="text-2xl font-bold text-red-400">—</div>
         <div id="kpi-insp-fails-sub" class="text-xs text-gray-500 mt-1">Rolling 30d</div>
         <div id="spark-insp-fails" class="flex items-end gap-0.5 mt-2 h-5"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TASKS WIDGET — top priority, shown after Gmail connect -->
-  <div id="action-items-widget" style="display:none;" class="mb-5">
-    <div class="card p-5">
-      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <div class="flex items-center gap-2">
-          <span class="text-lg">✅</span>
-          <h2 class="text-sm font-semibold text-white">My Tasks <span id="tasks-count" class="text-gray-500 font-normal text-xs ml-1"></span></h2>
-        </div>
-        <button onclick="showAddTaskForm()" class="gmail-btn" style="padding:5px 12px;font-size:11px;">+ Add Task</button>
-      </div>
-      <div id="add-task-form" style="display:none;" class="mb-4 flex gap-2">
-        <input id="new-task-note" type="text" placeholder="Task note..."
-          class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-          onkeydown="if(event.key==='Enter') submitNewTask()" />
-        <button onclick="submitNewTask()" class="gmail-btn" style="padding:6px 14px;">Save</button>
-        <button onclick="hideAddTaskForm()" class="gmail-btn" style="padding:6px 10px;color:#6b7280;">✕</button>
-      </div>
-      <div id="tasks-list" class="flex flex-col gap-2">
-        <div class="text-xs text-gray-500 text-center py-4">Connect Gmail to load your tasks</div>
       </div>
     </div>
   </div>
@@ -716,9 +716,11 @@
     function isActive(row) {
       const status = (row[C.projectStatus] || '').toString().trim().toLowerCase();
       if (status !== 'active') return false;
-      // Exclude special/batch projects
-      const special = row['wWhf7'];
-      if (special === true || special === 'true' || special === 1) return false;
+      // Exclude special/batch projects, Guardian Home, and GoodPWR
+      if (row['wWhf7'] === true || row['wWhf7'] === 'true' || row['wWhf7'] === 1) return false;
+      if (row['YP24o'] === true || row['YP24o'] === 'true' || row['YP24o'] === 1) return false;
+      const rep = (row[C.salesRep] || '').toString().trim().toLowerCase();
+      if (rep.startsWith('guardian')) return false;
       return true;
     }
 
