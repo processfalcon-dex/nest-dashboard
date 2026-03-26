@@ -147,45 +147,67 @@
     <button onclick="gmailSignIn()" class="action-btn" style="padding:10px 24px;font-size:14px;">Connect Gmail</button>
   </div>
 
-  <!-- Main 2-col layout (hidden until connected) -->
-  <div id="comms-layout" style="display:none;" class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+  <!-- Main layout (hidden until connected) -->
+  <div id="comms-layout" style="display:none;" class="flex flex-col gap-5">
 
-    <!-- LEFT: Tasks -->
-    <div class="panel">
-      <div class="panel-header">
-        <div class="flex items-center gap-2">
-          <span class="text-lg">✅</span>
-          <h2 class="text-sm font-semibold text-white">My Tasks <span id="tasks-count" class="text-gray-500 font-normal text-xs ml-1"></span></h2>
+    <!-- Top row: Tasks + Emails side by side -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+      <!-- Tasks -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">✅</span>
+            <h2 class="text-sm font-semibold text-white">My Tasks <span id="tasks-count" class="text-gray-500 font-normal text-xs ml-1"></span></h2>
+          </div>
+          <button onclick="showAddTaskForm()" class="action-btn" style="padding:5px 12px;">+ Add Task</button>
         </div>
-        <button onclick="showAddTaskForm()" class="action-btn" style="padding:5px 12px;">+ Add Task</button>
+        <div class="panel-body">
+          <div id="add-task-form" style="display:none;" class="mb-4 flex gap-2">
+            <input id="new-task-note" type="text" placeholder="Task note..."
+              class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+              onkeydown="if(event.key==='Enter') submitNewTask()" />
+            <button onclick="submitNewTask()" class="action-btn" style="padding:6px 14px;">Save</button>
+            <button onclick="hideAddTaskForm()" class="action-btn" style="padding:6px 10px;color:#6b7280;">✕</button>
+          </div>
+          <div id="tasks-list" class="flex flex-col gap-1">
+            <div class="text-xs text-gray-500 text-center py-8">Connect Gmail to load your tasks</div>
+          </div>
+        </div>
       </div>
-      <div class="panel-body">
-        <div id="add-task-form" style="display:none;" class="mb-4 flex gap-2">
-          <input id="new-task-note" type="text" placeholder="Task note..."
-            class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-            onkeydown="if(event.key==='Enter') submitNewTask()" />
-          <button onclick="submitNewTask()" class="action-btn" style="padding:6px 14px;">Save</button>
-          <button onclick="hideAddTaskForm()" class="action-btn" style="padding:6px 10px;color:#6b7280;">✕</button>
+
+      <!-- Priority Emails -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">📧</span>
+            <h2 class="text-sm font-semibold text-white">Priority Emails</h2>
+            <span class="pulse-dot ml-1" id="email-live-dot" style="display:none;"></span>
+          </div>
+          <button onclick="loadGmailEmails()" class="action-btn" style="padding:4px 10px;font-size:11px;">↻ Refresh</button>
         </div>
-        <div id="tasks-list" class="flex flex-col gap-1">
-          <div class="text-xs text-gray-500 text-center py-8">Connect Gmail to load your tasks</div>
+        <div class="panel-body" id="gmail-email-list">
+          <div class="text-xs text-gray-500 text-center py-8">Connect Gmail to see emails</div>
         </div>
       </div>
+
     </div>
 
-    <!-- RIGHT: Priority Emails -->
-    <div class="panel">
-      <div class="panel-header">
-        <div class="flex items-center gap-2">
-          <span class="text-lg">📧</span>
-          <h2 class="text-sm font-semibold text-white">Priority Emails</h2>
-          <span class="pulse-dot ml-1" id="email-live-dot" style="display:none;"></span>
+    <!-- Bottom: Discord Messages (full width) -->
+    <div style="background:#161b27;border:1px solid #1e2535;border-radius:12px;overflow:hidden;">
+      <div style="padding:12px 20px;border-bottom:1px solid #1e2535;display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:18px;">💬</span>
+          <span style="font-size:14px;font-weight:600;color:#f3f4f6;">Discord Messages</span>
+          <span id="discord-live-dot" class="pulse-dot" style="display:none;margin-left:4px;"></span>
         </div>
-        <button onclick="loadGmailEmails()" class="action-btn" style="padding:4px 10px;font-size:11px;">↻ Refresh</button>
+        <button onclick="reloadDiscord()" class="action-btn" style="padding:4px 10px;font-size:11px;">↻ Refresh</button>
       </div>
-      <div class="panel-body" id="gmail-email-list">
-        <div class="text-xs text-gray-500 text-center py-8">Connect Gmail to see emails</div>
-      </div>
+      <iframe id="discord-frame"
+        src="about:blank"
+        style="width:100%;height:480px;border:none;display:block;background:#1e1f22;"
+        title="Discord Messages">
+      </iframe>
     </div>
 
   </div>
@@ -289,6 +311,11 @@
         document.getElementById('comms-layout').style.display = 'grid';
         document.getElementById('email-live-dot').style.display = 'inline-block';
 
+        // Load Discord messages iframe
+        const frame = document.getElementById('discord-frame');
+        frame.src = `https://dash.processfalcon.com/messages?user=${encodeURIComponent(profile.emailAddress)}`;
+        document.getElementById('discord-live-dot').style.display = 'inline-block';
+
         // Load data
         await Promise.all([
           loadUserTasks(profile.emailAddress),
@@ -308,6 +335,15 @@
       document.getElementById('not-connected-state').style.display = 'block';
       document.getElementById('comms-layout').style.display = 'none';
       document.getElementById('email-live-dot').style.display = 'none';
+      document.getElementById('discord-live-dot').style.display = 'none';
+      document.getElementById('discord-frame').src = 'about:blank';
+    }
+
+    function reloadDiscord() {
+      const frame = document.getElementById('discord-frame');
+      if (frame.src && frame.src !== 'about:blank') {
+        frame.src = frame.src; // force reload
+      }
     }
 
     // ── Gmail Emails ──
