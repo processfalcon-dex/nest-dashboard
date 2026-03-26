@@ -426,6 +426,20 @@
     </div>
   </div>
 
+  <!-- ADMIN SECTION — gross profit, admin only -->
+  <div id="section-admin" class="mt-5" style="display:none;">
+    <div class="card p-5">
+      <div class="flex items-center gap-2 mb-5">
+        <span class="text-lg">🔒</span>
+        <h2 class="text-sm font-semibold text-white">Gross Profit Analysis</h2>
+        <span class="text-xs text-gray-500 ml-2">By Branch · By Rep · Admin Only</span>
+      </div>
+      <div id="admin-content">
+        <div class="text-xs text-gray-500 text-center py-4">Loading...</div>
+      </div>
+    </div>
+  </div>
+
   <!-- FOOTER -->
   <footer class="mt-8 text-center text-xs text-gray-600 pb-4">
     <span>Powered by </span><span class="text-gray-400 font-medium">Process Falcon</span>
@@ -1706,6 +1720,9 @@
         if (_userPerms.admin || _userPerms.salesSupport || _userPerms.projectMgmt) {
           loadSalesSection();
         }
+        if (_userPerms.admin) {
+          loadAdminSection();
+        }
       } catch(e) {
         console.error('Permissions load error:', e);
       }
@@ -1724,6 +1741,7 @@
         'section-sales':      ['salesSupport', 'projectMgmt', 'admin'],
         'section-stalled':    ['dueOverDue', 'opsTeam', 'admin'],
         'section-pl':         ['pL', 'admin'],
+        'section-admin':      ['admin'],
       };
       for (const [id, roles] of Object.entries(sectionMap)) {
         const el = document.getElementById(id);
@@ -2150,6 +2168,18 @@
         console.error('Sales section error:', e);
         container.innerHTML = '<div class="text-xs text-red-400 text-center py-4">Failed to load sales data</div>';
       }
+    }
+
+    // ─── Admin Section — Gross Profit (admin only, pending commission column) ──
+    async function loadAdminSection() {
+      const container = document.getElementById('admin-content');
+      if (!container) return;
+      container.innerHTML = `
+        <div class="text-center py-8" style="color:#4b5563;">
+          <div style="font-size:32px;margin-bottom:12px;">⏳</div>
+          <div class="text-sm text-gray-400 font-medium">Gross Profit metrics coming soon</div>
+          <div class="text-xs text-gray-600 mt-2">Waiting on commission column mapping before this section goes live.<br>Formula: CV − Commission − Expenses (labor + materials) − M1</div>
+        </div>`;
     }
   </script>
 </body>
