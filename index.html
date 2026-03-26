@@ -694,6 +694,8 @@
       if (row['wWhf7'] === true || row['wWhf7'] === 'true' || row['wWhf7'] === 1) return false;
       if (row['YP24o'] === true || row['YP24o'] === 'true' || row['YP24o'] === 1) return false;
       if (row['ryiGt'] === true || row['ryiGt'] === 'true' || row['ryiGt'] === 1) return false;
+      // Exclude GoodLeap TPO — held up by finance company, not our team
+      if ((row['G8eYI'] || '').toString().trim().toUpperCase() === 'GOODLEAP (TPO)') return false;
       return true;
     }
 
