@@ -3,5 +3,11 @@
     { "source": "/privacy", "destination": "/privacy.html" },
     { "source": "/messages", "destination": "/messages.html" },
     { "source": "/comms", "destination": "/comms.html" }
+  ],
+  "crons": [
+    {
+      "path": "/api/refresh-cache",
+      "schedule": "0 0 * * *"
+    }
   ]
 }

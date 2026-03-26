@@ -487,11 +487,27 @@
     setInterval(updateClock, 1000);
 
     // ─── Glide API config ─────────────────────────────────────────────────────
-    const GLIDE_TOKEN  = '111563eb-e5da-4edd-9c05-ebc1211c9c67';
+    // NOTE: Dashboard no longer calls Glide directly — all data comes from
+    // the server-side cache at /api/glide-data (refreshed nightly at midnight UTC).
+    // This reduces Glide Query API usage from ~10 calls/page-load to ~10 calls/day.
+    const GLIDE_TOKEN  = '111563eb-e5da-4edd-9c05-ebc1211c9c67'; // kept for mutateTables writes only
     const GLIDE_APP_ID = 'Tc2JYiVU5TBvWf9VaZJs'; // EPC Solar PRODUCTION
     const GLIDE_TABLE  = 'native-table-slnGZlKQWqYv6en1oee1';
-    const GLIDE_ENDPOINT        = 'https://api.glideapp.io/api/function/queryTables';
+    const GLIDE_ENDPOINT        = 'https://api.glideapp.io/api/function/queryTables'; // legacy - not used for reads
     const GLIDE_TABLE_FUNDING   = 'native-table-xTZOuwFnGRVnAduY5A8O';
+
+    // ─── Cached data store (populated once on load from /api/glide-data) ─────
+    let _cachedGlideData = null;
+
+    async function getGlideCache() {
+      if (_cachedGlideData) return _cachedGlideData;
+      const resp = await fetch('/api/glide-data');
+      if (!resp.ok) throw new Error(`Cache fetch failed: ${resp.status}`);
+      const payload = await resp.json();
+      _cachedGlideData = payload.data;
+      console.log(`[cache] Loaded Glide data (fetched at ${payload.fetchedAt})`);
+      return _cachedGlideData;
+    }
 
     // Column key map
     const C = {
@@ -519,29 +535,34 @@
       fundingStatus:            'WBuby',
     };
 
-    // ─── Fetch all rows (handles pagination) ─────────────────────────────────
+    // ─── Fetch all rows — now reads from server-side cache, not Glide directly ─
     async function fetchAllRows(tableId = GLIDE_TABLE) {
+      const cache = await getGlideCache();
+      // Map tableId to cache key
+      const TABLE_KEY_MAP = {
+        'native-table-slnGZlKQWqYv6en1oee1': 'projects',
+        'native-table-9DBHakVNiyCJ24SCuO9c': 'scheduledWork',
+        'native-table-mP2H7PaDb3MW0gcfBwdr': 'users',
+        'native-table-49597bd6-4d8b-4d0d-835f-fda4d4f6f5c6': 'inspectionFails',
+        'native-table-nbZPLVUebuFf4Be6jKRc': 'payroll',
+        'native-table-O6GgiSELTGKhf46nikQF': 'contractors',
+        'native-table-efd62ae1-fc15-4a15-b451-9539501c3951': 'tasks',
+        'native-table-515b3351-47ce-48a6-aef6-2b967354a633': 'revisionLog',
+      };
+      const key = TABLE_KEY_MAP[tableId];
+      if (key && cache[key]) return cache[key];
+
+      // Fallback: fetch live (should rarely happen)
+      console.warn(`[cache] No cache for ${tableId}, fetching live`);
       let rows = [];
       let cursor = undefined;
-
       while (true) {
-        const body = {
-          appID: GLIDE_APP_ID,
-          queries: [{
-            tableName: tableId,
-            ...(cursor ? { startAt: cursor } : {}),
-          }],
-        };
-
+        const body = { appID: GLIDE_APP_ID, queries: [{ tableName: tableId, ...(cursor ? { startAt: cursor } : {}) }] };
         const resp = await fetch(GLIDE_ENDPOINT, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${GLIDE_TOKEN}`,
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Authorization': `Bearer ${GLIDE_TOKEN}`, 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         });
-
         if (!resp.ok) {
           throw new Error(`Glide API error: ${resp.status} ${resp.statusText}`);
         }
@@ -1303,30 +1324,12 @@
     // ─── Ops KPIs + P&L ──────────────────────────────────────────────────────
     async function loadOpsAndPLKPIs() {
       try {
-        const [swResp, payResp, failsResp, revsResp] = await Promise.all([
-          fetch('https://api.glideapp.io/api/function/queryTables', {
-            method:'POST', headers:{'Authorization':`Bearer ${GLIDE_TOKEN}`,'Content-Type':'application/json'},
-            body: JSON.stringify({appID:GLIDE_APP_ID, queries:[{tableName:'native-table-9DBHakVNiyCJ24SCuO9c'}]})
-          }),
-          fetch('https://api.glideapp.io/api/function/queryTables', {
-            method:'POST', headers:{'Authorization':`Bearer ${GLIDE_TOKEN}`,'Content-Type':'application/json'},
-            body: JSON.stringify({appID:GLIDE_APP_ID, queries:[{tableName:'native-table-nbZPLVUebuFf4Be6jKRc'}]})
-          }),
-          fetch('https://api.glideapp.io/api/function/queryTables', {
-            method:'POST', headers:{'Authorization':`Bearer ${GLIDE_TOKEN}`,'Content-Type':'application/json'},
-            body: JSON.stringify({appID:GLIDE_APP_ID, queries:[{tableName:'native-table-49597bd6-4d8b-4d0d-835f-fda4d4f6f5c6'}]})
-          }),
-          fetch('https://api.glideapp.io/api/function/queryTables', {
-            method:'POST', headers:{'Authorization':`Bearer ${GLIDE_TOKEN}`,'Content-Type':'application/json'},
-            body: JSON.stringify({appID:GLIDE_APP_ID, queries:[{tableName:'native-table-515b3351-47ce-48a6-aef6-2b967354a633'}]})
-          })
-        ]);
-        const [swData, payData, failsData, revsData] = await Promise.all([swResp.json(), payResp.json(), failsResp.json(), revsResp.json()]);
-
-        const swRows   = Array.isArray(swData)    ? (swData[0]    || {}).rows || [] : [];
-        const payRows  = Array.isArray(payData)   ? (payData[0]   || {}).rows || [] : [];
-        const failRows = Array.isArray(failsData) ? (failsData[0] || {}).rows || [] : [];
-        const revRows  = Array.isArray(revsData)  ? (revsData[0]  || {}).rows || [] : [];
+        // Read from server-side cache — zero Glide Query API calls
+        const cache = await getGlideCache();
+        const swRows   = cache.scheduledWork   || [];
+        const payRows  = cache.payroll         || [];
+        const failRows = cache.inspectionFails || [];
+        const revRows  = cache.revisionLog     || [];
 
         // Period boundaries
         const now  = new Date();
@@ -1676,12 +1679,9 @@
 
     async function loadUserPermissions(email) {
       try {
-        const resp = await fetch('https://api.glideapp.io/api/function/queryTables', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${GLIDE_TOKEN}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ appID: GLIDE_APP_ID, queries: [{ tableName: 'native-table-mP2H7PaDb3MW0gcfBwdr' }] })
-        });
-        const data = await resp.json();
+        // Read from cache — no Glide query needed
+        const cache = await getGlideCache();
+        const data = [{ rows: cache.users || [] }];
         const users = Array.isArray(data) ? (data[0] || {}).rows || [] : [];
         const match = users.find(u => (u.iwVVI || '').toLowerCase() === email.toLowerCase());
 
@@ -1760,24 +1760,13 @@
       container.innerHTML = '<div class="text-xs text-gray-500 loading-shimmer px-10 py-2 text-center">Loading...</div>';
 
       try {
-        // Fetch scheduled work + contractors + inspection fails in parallel
-        const [swResp, crewResp, failsResp] = await Promise.all([
-          fetch('https://api.glideapp.io/api/function/queryTables', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${GLIDE_TOKEN}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ appID: GLIDE_APP_ID, queries: [{ tableName: 'native-table-9DBHakVNiyCJ24SCuO9c' }] })
-          }),
-          fetch('https://api.glideapp.io/api/function/queryTables', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${GLIDE_TOKEN}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ appID: GLIDE_APP_ID, queries: [{ tableName: 'native-table-O6GgiSELTGKhf46nikQF' }] })
-          }),
-          fetch('https://api.glideapp.io/api/function/queryTables', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${GLIDE_TOKEN}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ appID: GLIDE_APP_ID, queries: [{ tableName: 'native-table-49597bd6-4d8b-4d0d-835f-fda4d4f6f5c6' }] })
-          })
-        ]);
+        // Read from server-side cache — zero Glide Query API calls
+        const _cacheC = await getGlideCache();
+        const [swResp, crewResp, failsResp] = [
+          { json: async () => [{ rows: _cacheC.scheduledWork || [] }] },
+          { json: async () => [{ rows: _cacheC.contractors   || [] }] },
+          { json: async () => [{ rows: _cacheC.inspectionFails || [] }] }
+        ];
         const [swData, crewData, failsData] = await Promise.all([swResp.json(), crewResp.json(), failsResp.json()]);
         const rows     = Array.isArray(swData)    ? (swData[0]    || {}).rows || [] : [];
         const crewList = Array.isArray(crewData)  ? (crewData[0]  || {}).rows || [] : [];
@@ -1969,19 +1958,12 @@
       container.innerHTML = '<div class="text-xs text-gray-500 loading-shimmer px-10 py-2 text-center">Loading...</div>';
 
       try {
-        // Fetch all tables in parallel
-        const glidePost = (table) => fetch('https://api.glideapp.io/api/function/queryTables', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${GLIDE_TOKEN}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ appID: GLIDE_APP_ID, queries: [{ tableName: table }] })
-        }).then(r => r.json()).then(d => Array.isArray(d) ? (d[0]||{}).rows||[] : []);
-
-        const [allRows, expRows, payRows, fundRows] = await Promise.all([
-          glidePost('native-table-slnGZlKQWqYv6en1oee1'),
-          glidePost('native-table-52a883ab-8f21-42fa-9360-cbfe5b4783be'),
-          glidePost('native-table-nbZPLVUebuFf4Be6jKRc'),
-          glidePost('native-table-xTZOuwFnGRVnAduY5A8O'),
-        ]);
+        // Read from server-side cache — zero Glide Query API calls
+        const _cacheS = await getGlideCache();
+        const allRows  = _cacheS.projects  || [];
+        const expRows  = []; // expense table not in cache yet
+        const payRows  = _cacheS.payroll   || [];
+        const fundRows = []; // funding table not in cache yet
 
         // Exclude Guardian, GoodPWR, Special for all sales metrics
         const rows = allRows.filter(r =>
