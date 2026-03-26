@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/privacy", "destination": "/privacy.html" },
-    { "source": "/messages", "destination": "/messages.html" }
+    { "source": "/messages", "destination": "/messages.html" },
+    { "source": "/comms", "destination": "/comms.html" }
   ]
 }
