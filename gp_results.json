@@ -1,5 +1,5 @@
 {
-  "computedAt": "2026-03-27T03:06:13.810182Z",
+  "computedAt": "2026-03-27T03:10:26.216135Z",
   "formula": "GP = CV (funding) - Commission - Labor - Materials - M1 - Other Expenses. Commission = (Net PPW - Redline) x Watts where Net PPW = (CV - Dealer Fee - Adders) / Watts.",
   "totalJobs": 34,
   "skipped": {
@@ -25,8 +25,8 @@
     },
     {
       "state": "FL",
-      "avg_gp": 12885,
-      "total_gp": 257708,
+      "avg_gp": 12855,
+      "total_gp": 257108,
       "n": 20
     },
     {
@@ -87,10 +87,10 @@
     },
     {
       "rep": "Brandon Cesare",
-      "avg_gp": 6409,
+      "avg_gp": 6209,
       "avg_kw": 8.1,
-      "gp_per_kw": 796,
-      "total_gp": 19226,
+      "gp_per_kw": 771,
+      "total_gp": 18626,
       "n": 3
     },
     {
@@ -153,18 +153,18 @@
       "redline_src": "dealer:Cesare",
       "cv": 25845.6,
       "dealer_fee": 0.0,
-      "adders": 1568.0,
-      "net_price_comm": 24277.6,
-      "net_ppw": 2.508,
+      "adders": 1368.0,
+      "net_price_comm": 24477.6,
+      "net_ppw": 2.529,
       "redline": 1.95,
-      "commission": 5401.6,
+      "commission": 5601.6,
       "system_kw": 9.68,
       "labor": 2226.4,
       "equipment": 8877.22,
       "permit_cost": 181.25,
       "utility_cost": 0.0,
       "total_expenses": 11284.87,
-      "gp": 9159.13
+      "gp": 8959.13
     },
     {
       "pid": "acF3v7SIQ563878hNck7TA",
@@ -300,18 +300,18 @@
       "redline_src": "dealer:Cesare",
       "cv": 28700.0,
       "dealer_fee": 0.0,
-      "adders": 1748.0,
-      "net_price_comm": 26952.0,
-      "net_ppw": 2.348,
+      "adders": 1548.0,
+      "net_price_comm": 27152.0,
+      "net_ppw": 2.365,
       "redline": 1.95,
-      "commission": 4566.0,
+      "commission": 4766.0,
       "system_kw": 11.48,
       "labor": 2640.4,
       "equipment": 12416.65,
       "permit_cost": 171.85,
       "utility_cost": 0.0,
       "total_expenses": 15478.9,
-      "gp": 8655.1
+      "gp": 8455.1
     },
     {
       "pid": "c13Q7T.eSzCleLDDSBeQ-Q",
@@ -489,18 +489,18 @@
       "redline_src": "dealer:Cesare",
       "cv": 11113.2,
       "dealer_fee": 0.0,
-      "adders": 2750.0,
-      "net_price_comm": 8363.2,
-      "net_ppw": 2.788,
+      "adders": 2550.0,
+      "net_price_comm": 8563.2,
+      "net_ppw": 2.854,
       "redline": 1.95,
-      "commission": 2513.2,
+      "commission": 2713.2,
       "system_kw": 3.0,
       "labor": 809.6,
       "equipment": 5770.23,
       "permit_cost": 358.84,
       "utility_cost": 0.0,
       "total_expenses": 7188.67,
-      "gp": 1411.33
+      "gp": 1211.33
     },
     {
       "pid": "ISuP91LrSP-kgWFXUQ6x1Q",
