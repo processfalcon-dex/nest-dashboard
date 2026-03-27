@@ -1,88 +1,105 @@
 {
-  "computedAt": "2026-03-27T01:30:29.606466Z",
+  "computedAt": "2026-03-27T03:02:51.070863Z",
+  "formula": "GP = CV (funding) - Commission - Labor - Materials - M1 - Other Expenses. Commission = (Net PPW - Redline) x Watts where Net PPW = (CV - Dealer Fee - Adders) / Watts.",
   "totalJobs": 34,
   "skipped": {
-    "no_system_size": 193,
-    "no_cv": 44,
+    "no_system_size": 108,
+    "no_cv": 130,
     "no_state": 90,
-    "no_labor": 26,
+    "no_labor": 25,
     "no_redline": 23,
     "no_equipment": 16
   },
   "byState": [
     {
-      "state": "NC",
-      "avg_gp": 6878,
-      "total_gp": 48148,
-      "n": 7
-    },
-    {
-      "state": "FL",
-      "avg_gp": 6763,
-      "total_gp": 135256,
-      "n": 20
+      "state": "TX",
+      "avg_gp": 33949,
+      "total_gp": 67898,
+      "n": 2
     },
     {
       "state": "SC",
-      "avg_gp": 3361,
-      "total_gp": 16803,
+      "avg_gp": 13630,
+      "total_gp": 68151,
       "n": 5
     },
     {
-      "state": "TX",
-      "avg_gp": -3288,
-      "total_gp": -6575,
-      "n": 2
+      "state": "FL",
+      "avg_gp": 13188,
+      "total_gp": 263765,
+      "n": 20
+    },
+    {
+      "state": "NC",
+      "avg_gp": 9133,
+      "total_gp": 63929,
+      "n": 7
     }
   ],
   "byRep": [
     {
-      "rep": "Victor Diaz",
-      "avg_gp": 9596,
-      "total_gp": 28787,
-      "n": 3
-    },
-    {
       "rep": "Daniel Olaez",
-      "avg_gp": 8854,
-      "total_gp": 17707,
+      "avg_gp": 15599,
+      "avg_kw": 10.2,
+      "gp_per_kw": 1529,
+      "total_gp": 31198,
       "n": 2
-    },
-    {
-      "rep": "ZOE LUNA",
-      "avg_gp": 6878,
-      "total_gp": 48148,
-      "n": 7
     },
     {
       "rep": "Travis Dean",
-      "avg_gp": 6845,
-      "total_gp": 13691,
-      "n": 2
-    },
-    {
-      "rep": "Homei Okanishi",
-      "avg_gp": 5679,
-      "total_gp": 11358,
-      "n": 2
-    },
-    {
-      "rep": "Brandon Cesare",
-      "avg_gp": 4624,
-      "total_gp": 13872,
-      "n": 3
-    },
-    {
-      "rep": "Martell Keyes",
-      "avg_gp": 3953,
-      "total_gp": 7906,
+      "avg_gp": 15140,
+      "avg_kw": 8.1,
+      "gp_per_kw": 1867,
+      "total_gp": 30280,
       "n": 2
     },
     {
       "rep": "LAUREL BURTON",
-      "avg_gp": 3361,
-      "total_gp": 16803,
+      "avg_gp": 13630,
+      "avg_kw": 6.4,
+      "gp_per_kw": 2142,
+      "total_gp": 68151,
       "n": 5
+    },
+    {
+      "rep": "Victor Diaz",
+      "avg_gp": 12567,
+      "avg_kw": 11.0,
+      "gp_per_kw": 1144,
+      "total_gp": 37702,
+      "n": 3
+    },
+    {
+      "rep": "ZOE LUNA",
+      "avg_gp": 9133,
+      "avg_kw": 8.5,
+      "gp_per_kw": 1073,
+      "total_gp": 63929,
+      "n": 7
+    },
+    {
+      "rep": "Martell Keyes",
+      "avg_gp": 7278,
+      "avg_kw": 5.2,
+      "gp_per_kw": 1410,
+      "total_gp": 14556,
+      "n": 2
+    },
+    {
+      "rep": "Brandon Cesare",
+      "avg_gp": 6646,
+      "avg_kw": 8.1,
+      "gp_per_kw": 825,
+      "total_gp": 19938,
+      "n": 3
+    },
+    {
+      "rep": "Homei Okanishi",
+      "avg_gp": 5979,
+      "avg_kw": 6.8,
+      "gp_per_kw": 881,
+      "total_gp": 11958,
+      "n": 2
     }
   ],
   "jobs": [
@@ -95,13 +112,16 @@
       "cv": 28362.93,
       "dealer_fee": 9357.0,
       "adders": 659.0,
-      "net_price": 18346.93,
+      "net_price_comm": 18346.93,
       "net_ppw": 3.282,
       "redline": 1.95,
       "commission": 7446.43,
       "system_kw": 5.59,
+      "labor": 1839.6,
+      "equipment": 190.79,
+      "other_exp": 0.0,
       "total_expenses": 2030.39,
-      "gp": 8870.11
+      "gp": 18886.11
     },
     {
       "pid": "F4jgV93RSiO7Z8uA-6F3-w",
@@ -112,13 +132,16 @@
       "cv": 21180.6,
       "dealer_fee": 0.0,
       "adders": 3444.0,
-      "net_price": 17736.6,
+      "net_price_comm": 17736.6,
       "net_ppw": 2.06,
       "redline": 1.875,
       "commission": 1592.85,
       "system_kw": 8.61,
+      "labor": 3960.6,
+      "equipment": 57.22,
+      "other_exp": 250.0,
       "total_expenses": 4267.82,
-      "gp": 11875.93
+      "gp": 15319.93
     },
     {
       "pid": "aU2eZi7HR2GZSqzImMEQ.g",
@@ -129,13 +152,16 @@
       "cv": 25845.6,
       "dealer_fee": 0.0,
       "adders": 1568.0,
-      "net_price": 24277.6,
+      "net_price_comm": 24277.6,
       "net_ppw": 2.508,
       "redline": 1.95,
       "commission": 5401.6,
       "system_kw": 9.68,
+      "labor": 2226.4,
+      "equipment": 8877.22,
+      "other_exp": 0.0,
       "total_expenses": 11103.62,
-      "gp": 7772.38
+      "gp": 9340.38
     },
     {
       "pid": "acF3v7SIQ563878hNck7TA",
@@ -146,13 +172,16 @@
       "cv": 37422.0,
       "dealer_fee": 0.0,
       "adders": 12441.0,
-      "net_price": 24981.0,
+      "net_price_comm": 24981.0,
       "net_ppw": 2.804,
       "redline": 1.875,
       "commission": 8274.75,
       "system_kw": 8.91,
+      "labor": 2049.3,
+      "equipment": 935.03,
+      "other_exp": 0.0,
       "total_expenses": 2984.33,
-      "gp": 13721.92
+      "gp": 26162.92
     },
     {
       "pid": "MWxWD7E9QX6Qe6iYYjitdg",
@@ -163,13 +192,16 @@
       "cv": 66341.0,
       "dealer_fee": 18900.0,
       "adders": 13000.0,
-      "net_price": 34441.0,
+      "net_price_comm": 34441.0,
       "net_ppw": 3.0,
       "redline": 2.0,
       "commission": 11481.0,
       "system_kw": 11.48,
+      "labor": 7955.0,
+      "equipment": 17892.77,
+      "other_exp": 0.0,
       "total_expenses": 25847.77,
-      "gp": -2887.77
+      "gp": 29012.23
     },
     {
       "pid": "KbVdoNLdSh2rP4RxuLfEZQ",
@@ -180,13 +212,16 @@
       "cv": 33428.2,
       "dealer_fee": 0.0,
       "adders": 1653.0,
-      "net_price": 31775.2,
+      "net_price_comm": 31775.2,
       "net_ppw": 3.018,
       "redline": 1.9,
       "commission": 11768.2,
       "system_kw": 10.53,
+      "labor": 2771.9,
+      "equipment": 363.85,
+      "other_exp": 0.0,
       "total_expenses": 3135.75,
-      "gp": 16871.25
+      "gp": 18524.25
     },
     {
       "pid": "sC0mpdmyRGG4iMwp3eGkCA",
@@ -197,13 +232,16 @@
       "cv": 41680.6,
       "dealer_fee": 0.0,
       "adders": 15839.23,
-      "net_price": 25841.37,
+      "net_price_comm": 25841.37,
       "net_ppw": 2.551,
       "redline": 1.875,
       "commission": 6847.62,
       "system_kw": 10.13,
+      "labor": 2968.75,
+      "equipment": 7820.39,
+      "other_exp": 700.0,
       "total_expenses": 11489.14,
-      "gp": 7504.61
+      "gp": 23343.84
     },
     {
       "pid": "TA4aGq4wTz-YQxDCNUfMTA",
@@ -214,13 +252,16 @@
       "cv": 46736.4,
       "dealer_fee": 0.0,
       "adders": 2000.0,
-      "net_price": 44736.4,
+      "net_price_comm": 44736.4,
       "net_ppw": 3.025,
       "redline": 1.875,
       "commission": 17005.15,
       "system_kw": 14.79,
+      "labor": 3401.7,
+      "equipment": 9260.59,
+      "other_exp": 0.0,
       "total_expenses": 12662.29,
-      "gp": 15068.96
+      "gp": 17068.96
     },
     {
       "pid": "T.MGBBXYRfywjdjiGun0Zw",
@@ -231,13 +272,16 @@
       "cv": 48576.0,
       "dealer_fee": 0.0,
       "adders": 2000.0,
-      "net_price": 46576.0,
+      "net_price_comm": 46576.0,
       "net_ppw": 2.646,
       "redline": 1.875,
       "commission": 13576.0,
       "system_kw": 17.6,
+      "labor": 3960.6,
+      "equipment": 20687.3,
+      "other_exp": 250.0,
       "total_expenses": 24897.9,
-      "gp": 8102.1
+      "gp": 10102.1
     },
     {
       "pid": "D8SlpmvjTEKx3ESqr3KzHg",
@@ -248,13 +292,16 @@
       "cv": 28700.0,
       "dealer_fee": 0.0,
       "adders": 1748.0,
-      "net_price": 26952.0,
+      "net_price_comm": 26952.0,
       "net_ppw": 2.348,
       "redline": 1.95,
       "commission": 4566.0,
       "system_kw": 11.48,
+      "labor": 2640.4,
+      "equipment": 12416.65,
+      "other_exp": 250.0,
       "total_expenses": 15307.05,
-      "gp": 7078.95
+      "gp": 8826.95
     },
     {
       "pid": "c13Q7T.eSzCleLDDSBeQ-Q",
@@ -265,13 +312,16 @@
       "cv": 31046.0,
       "dealer_fee": 0.0,
       "adders": 817.0,
-      "net_price": 30229.0,
+      "net_price_comm": 30229.0,
       "net_ppw": 3.7,
       "redline": 2.05,
       "commission": 13480.5,
       "system_kw": 8.17,
+      "labor": 5200.0,
+      "equipment": 8956.72,
+      "other_exp": 0.0,
       "total_expenses": 14156.72,
-      "gp": 2591.78
+      "gp": 3408.78
     },
     {
       "pid": "P4Pp8FPfQNyHFt0JS37eDg",
@@ -282,13 +332,16 @@
       "cv": 17999.8,
       "dealer_fee": 0.0,
       "adders": 600.0,
-      "net_price": 17399.8,
+      "net_price_comm": 17399.8,
       "net_ppw": 2.89,
       "redline": 1.95,
       "commission": 5660.8,
       "system_kw": 6.02,
+      "labor": 1518.0,
+      "equipment": 6450.51,
+      "other_exp": 0.0,
       "total_expenses": 7968.51,
-      "gp": 3770.49
+      "gp": 4370.49
     },
     {
       "pid": "afgaI95SSc-8tO4iy-plBQ",
@@ -299,13 +352,16 @@
       "cv": 17539.2,
       "dealer_fee": 0.0,
       "adders": 750.0,
-      "net_price": 16789.2,
+      "net_price_comm": 16789.2,
       "net_ppw": 2.757,
       "redline": 1.875,
       "commission": 5370.45,
       "system_kw": 6.09,
+      "labor": 1400.7,
+      "equipment": 3582.01,
+      "other_exp": 250.0,
       "total_expenses": 5232.71,
-      "gp": 6186.04
+      "gp": 6936.04
     },
     {
       "pid": "a.TJ1xceETo6vcZSchLX5Uw",
@@ -316,13 +372,16 @@
       "cv": 25300.0,
       "dealer_fee": 0.0,
       "adders": 1050.3,
-      "net_price": 24249.7,
+      "net_price_comm": 24249.7,
       "net_ppw": 2.109,
       "redline": 1.875,
       "commission": 2687.2,
       "system_kw": 11.5,
+      "labor": 2645.0,
+      "equipment": 14932.42,
+      "other_exp": 0.0,
       "total_expenses": 17577.42,
-      "gp": 3985.08
+      "gp": 5035.38
     },
     {
       "pid": "PJNNHeRoRMGgg4As.Ru3IA",
@@ -333,13 +392,16 @@
       "cv": 34524.6,
       "dealer_fee": 11648.6,
       "adders": 0.0,
-      "net_price": 22876.0,
+      "net_price_comm": 22876.0,
       "net_ppw": 3.8,
       "redline": 2.05,
       "commission": 10535.0,
       "system_kw": 6.02,
+      "labor": 5350.0,
+      "equipment": 5962.34,
+      "other_exp": 0.0,
       "total_expenses": 11312.34,
-      "gp": 1028.66
+      "gp": 12677.26
     },
     {
       "pid": "EUc5bTLqQbSGB63rcJMzWQ",
@@ -350,13 +412,16 @@
       "cv": 11844.9,
       "dealer_fee": 0.0,
       "adders": 1700.0,
-      "net_price": 10144.9,
+      "net_price_comm": 10144.9,
       "net_ppw": 2.749,
       "redline": 1.95,
       "commission": 2949.4,
       "system_kw": 3.69,
+      "labor": 1279.6,
+      "equipment": 6052.59,
+      "other_exp": 128.0,
       "total_expenses": 7460.19,
-      "gp": -264.69
+      "gp": 1435.31
     },
     {
       "pid": "b0gS7MGLQSCly2h8KhtVag",
@@ -367,13 +432,16 @@
       "cv": 32058.56,
       "dealer_fee": 10816.56,
       "adders": 0.0,
-      "net_price": 21242.0,
+      "net_price_comm": 21242.0,
       "net_ppw": 3.8,
       "redline": 2.05,
       "commission": 9782.5,
       "system_kw": 5.59,
+      "labor": 1894.6,
+      "equipment": 4934.02,
+      "other_exp": 0.0,
       "total_expenses": 6828.62,
-      "gp": 4630.88
+      "gp": 15447.44
     },
     {
       "pid": "ecRrqu6iRJWDZN06BgEzbw",
@@ -384,13 +452,16 @@
       "cv": 16821.6,
       "dealer_fee": 0.0,
       "adders": 2000.0,
-      "net_price": 14821.6,
+      "net_price_comm": 14821.6,
       "net_ppw": 2.872,
       "redline": 1.9,
       "commission": 5017.6,
       "system_kw": 5.16,
+      "labor": 131.61,
+      "equipment": 6644.98,
+      "other_exp": 0.0,
       "total_expenses": 6776.59,
-      "gp": 3027.41
+      "gp": 5027.41
     },
     {
       "pid": "tFiLlSQIQ1y3WLXZNTQU8g",
@@ -401,13 +472,16 @@
       "cv": 11113.2,
       "dealer_fee": 0.0,
       "adders": 2750.0,
-      "net_price": 8363.2,
+      "net_price_comm": 8363.2,
       "net_ppw": 2.788,
       "redline": 1.95,
       "commission": 2513.2,
       "system_kw": 3.0,
+      "labor": 809.6,
+      "equipment": 5770.23,
+      "other_exp": 250.0,
       "total_expenses": 6829.83,
-      "gp": -979.83
+      "gp": 1770.17
     },
     {
       "pid": "ISuP91LrSP-kgWFXUQ6x1Q",
@@ -418,13 +492,16 @@
       "cv": 31751.2,
       "dealer_fee": 0.0,
       "adders": 1955.0,
-      "net_price": 29796.2,
+      "net_price_comm": 29796.2,
       "net_ppw": 2.665,
       "redline": 1.95,
       "commission": 7995.2,
       "system_kw": 11.18,
+      "labor": 379.2,
+      "equipment": 1441.4,
+      "other_exp": 0.0,
       "total_expenses": 1820.6,
-      "gp": 19980.4
+      "gp": 21935.4
     },
     {
       "pid": "hNg2CaMXSy2zxhqHLPIqYw",
@@ -435,13 +512,16 @@
       "cv": 25370.0,
       "dealer_fee": 0.0,
       "adders": 700.0,
-      "net_price": 24670.0,
+      "net_price_comm": 24670.0,
       "net_ppw": 2.869,
       "redline": 1.95,
       "commission": 7900.0,
       "system_kw": 8.6,
+      "labor": 2636.2,
+      "equipment": 9102.35,
+      "other_exp": 0.0,
       "total_expenses": 11738.55,
-      "gp": 5031.45
+      "gp": 5731.45
     },
     {
       "pid": "pCjy0Y3iS1iYoO3k7Jqkyg",
@@ -452,13 +532,16 @@
       "cv": 34524.6,
       "dealer_fee": 11648.6,
       "adders": 2800.0,
-      "net_price": 20076.0,
+      "net_price_comm": 20076.0,
       "net_ppw": 3.335,
       "redline": 2.05,
       "commission": 7735.0,
       "system_kw": 6.02,
+      "labor": 3350.0,
+      "equipment": 5299.14,
+      "other_exp": 0.0,
       "total_expenses": 8649.14,
-      "gp": 3691.86
+      "gp": 18140.46
     },
     {
       "pid": "T.1vtdIMTQumqtL3OytnPg",
@@ -469,13 +552,16 @@
       "cv": 22514.8,
       "dealer_fee": 0.0,
       "adders": 50.0,
-      "net_price": 22464.8,
+      "net_price_comm": 22464.8,
       "net_ppw": 2.403,
       "redline": 1.95,
       "commission": 4232.3,
       "system_kw": 9.35,
+      "labor": 3544.4,
+      "equipment": 9864.8,
+      "other_exp": 0.0,
       "total_expenses": 13409.2,
-      "gp": 4823.3
+      "gp": 4873.3
     },
     {
       "pid": "5vlsBJ4HQlqKukGxjWDdjw",
@@ -486,13 +572,16 @@
       "cv": 23268.75,
       "dealer_fee": 0.0,
       "adders": 2000.0,
-      "net_price": 21268.75,
+      "net_price_comm": 21268.75,
       "net_ppw": 3.336,
       "redline": 1.9,
       "commission": 9156.25,
       "system_kw": 6.38,
+      "labor": 1483.5,
+      "equipment": 6893.16,
+      "other_exp": 0.0,
       "total_expenses": 8376.66,
-      "gp": 3735.84
+      "gp": 5735.84
     },
     {
       "pid": "t-ZjGfP.TNKJqukmwAx13A",
@@ -503,13 +592,16 @@
       "cv": 70000.0,
       "dealer_fee": 0.0,
       "adders": 26050.0,
-      "net_price": 43950.0,
+      "net_price_comm": 43950.0,
       "net_ppw": 2.11,
       "redline": 2.0,
       "commission": 2300.0,
       "system_kw": 20.82,
+      "labor": 4843.8,
+      "equipment": 27312.38,
+      "other_exp": 0.0,
       "total_expenses": 32156.18,
-      "gp": 9493.82
+      "gp": 35543.82
     },
     {
       "pid": "3JE7gettTWmy8guXg8M4vQ",
@@ -520,13 +612,16 @@
       "cv": 34978.87,
       "dealer_fee": 11801.87,
       "adders": 1814.98,
-      "net_price": 21362.02,
+      "net_price_comm": 21362.02,
       "net_ppw": 3.549,
       "redline": 2.05,
       "commission": 9021.02,
       "system_kw": 6.02,
+      "labor": 417.0,
+      "equipment": 7064.05,
+      "other_exp": 0.0,
       "total_expenses": 7481.05,
-      "gp": 4859.95
+      "gp": 18476.8
     },
     {
       "pid": "u2KJ71KdQvi4RxaM8hfObg",
@@ -537,13 +632,16 @@
       "cv": 17079.6,
       "dealer_fee": 0.0,
       "adders": 4650.0,
-      "net_price": 12429.6,
+      "net_price_comm": 12429.6,
       "net_ppw": 2.409,
       "redline": 1.9,
       "commission": 2625.6,
       "system_kw": 5.16,
+      "labor": 3900.6,
+      "equipment": 737.18,
+      "other_exp": 288.0,
       "total_expenses": 4925.78,
-      "gp": 4878.22
+      "gp": 9528.22
     },
     {
       "pid": "7auHoenXRHOPwHkbzKjQ1A",
@@ -554,13 +652,16 @@
       "cv": 40379.3,
       "dealer_fee": 0.0,
       "adders": 1359.79,
-      "net_price": 39019.51,
+      "net_price_comm": 39019.51,
       "net_ppw": 3.07,
       "redline": 1.95,
       "commission": 14235.01,
       "system_kw": 12.71,
+      "labor": 3570.0,
+      "equipment": 12997.96,
+      "other_exp": 250.0,
       "total_expenses": 16817.96,
-      "gp": 7966.54
+      "gp": 9326.33
     },
     {
       "pid": "ak46GYSAQ5qE-TROiR9TMA",
@@ -571,13 +672,16 @@
       "cv": 68214.0,
       "dealer_fee": 16194.0,
       "adders": 1300.0,
-      "net_price": 50720.0,
+      "net_price_comm": 50720.0,
       "net_ppw": 4.973,
       "redline": 1.95,
       "commission": 30830.0,
       "system_kw": 10.2,
+      "labor": 2346.0,
+      "equipment": 6410.04,
+      "other_exp": 0.0,
       "total_expenses": 8756.04,
-      "gp": 11133.96
+      "gp": 28627.96
     },
     {
       "pid": "Y08jdwH0Qhyrj-DE8rnvrQ",
@@ -588,13 +692,16 @@
       "cv": 27561.6,
       "dealer_fee": 0.0,
       "adders": 3471.0,
-      "net_price": 24090.6,
+      "net_price_comm": 24090.6,
       "net_ppw": 2.517,
       "redline": 1.875,
       "commission": 6146.85,
       "system_kw": 9.57,
+      "labor": 4526.4,
+      "equipment": 11575.18,
+      "other_exp": 0.0,
       "total_expenses": 16101.58,
-      "gp": 1842.17
+      "gp": 5313.17
     },
     {
       "pid": "93aKecmlSG6hrmmWcQNUog",
@@ -605,11 +712,14 @@
       "cv": 24780.9,
       "dealer_fee": 0.0,
       "adders": 0.0,
-      "net_price": 24780.9,
+      "net_price_comm": 24780.9,
       "net_ppw": 3.278,
       "redline": 1.95,
       "commission": 10038.9,
       "system_kw": 7.56,
+      "labor": 1769.85,
+      "equipment": 5385.05,
+      "other_exp": 0.0,
       "total_expenses": 7154.9,
       "gp": 7587.1
     },
@@ -622,13 +732,16 @@
       "cv": 71641.6,
       "dealer_fee": 0.0,
       "adders": 27000.0,
-      "net_price": 44641.6,
+      "net_price_comm": 44641.6,
       "net_ppw": 3.024,
       "redline": 1.95,
       "commission": 15859.6,
       "system_kw": 14.76,
+      "labor": 10303.4,
+      "equipment": 25878.51,
+      "other_exp": 0.0,
       "total_expenses": 36181.91,
-      "gp": -7399.91
+      "gp": 19600.09
     },
     {
       "pid": "fOXzZf2FTZCVmHoCnuW-fQ",
@@ -639,13 +752,16 @@
       "cv": 87152.93,
       "dealer_fee": 26573.0,
       "adders": 16000.0,
-      "net_price": 44579.93,
+      "net_price_comm": 44579.93,
       "net_ppw": 2.592,
       "redline": 2.05,
       "commission": 9319.93,
       "system_kw": 17.2,
+      "labor": 10388.46,
+      "equipment": 28559.0,
+      "other_exp": 0.0,
       "total_expenses": 38947.46,
-      "gp": -3687.46
+      "gp": 38885.54
     },
     {
       "pid": "m0DRlhr9REqPLuP-QVaduw",
@@ -656,11 +772,14 @@
       "cv": 25370.0,
       "dealer_fee": 0.0,
       "adders": 0.0,
-      "net_price": 25370.0,
+      "net_price_comm": 25370.0,
       "net_ppw": 3.002,
       "redline": 1.95,
       "commission": 8892.5,
       "system_kw": 8.45,
+      "labor": 7516.0,
+      "equipment": 7220.4,
+      "other_exp": 0.0,
       "total_expenses": 14736.4,
       "gp": 1741.1
     }
