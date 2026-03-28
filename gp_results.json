@@ -1,15 +1,15 @@
 {
-  "computedAt": "2026-03-27T03:49:25.072797Z",
+  "computedAt": "2026-03-28T01:30:28.940915Z",
   "formula": "GP = CV (funding) - Commission - Labor - Materials - M1 - Other Expenses. Commission = (Net PPW - Redline) x Watts where Net PPW = (CV - Dealer Fee - Adders) / Watts.",
-  "totalJobs": 25,
+  "totalJobs": 26,
   "skipped": {
     "no_system_size": 108,
     "no_cv": 130,
     "no_state": 90,
-    "equipment_below_threshold": 9,
+    "equipment_below_threshold": 10,
     "no_labor": 25,
     "no_redline": 23,
-    "no_equipment": 16
+    "no_equipment": 14
   },
   "byState": [
     {
@@ -26,9 +26,9 @@
     },
     {
       "state": "FL",
-      "avg_gp": 9333,
-      "total_gp": 121328,
-      "n": 13
+      "avg_gp": 9275,
+      "total_gp": 129845,
+      "n": 14
     },
     {
       "state": "NC",
@@ -509,6 +509,30 @@
       "gp": 5479.59
     },
     {
+      "pid": "xyPljnjfRfOTQ.arA-xByA",
+      "customer": "John Crittenden",
+      "state": "FL",
+      "rep": "John Futris",
+      "redline_src": "dealer:Solarity",
+      "cv": 20463.1,
+      "dealer_fee": 0.0,
+      "adders": 850.0,
+      "net_price_comm": 19613.1,
+      "net_ppw": 2.08,
+      "redline": 1.95,
+      "commission": 1224.6,
+      "system_kw": 9.43,
+      "mat_per_w": 0.921,
+      "equip_flag": true,
+      "equip_estimated": false,
+      "labor": 6441.15,
+      "equipment": 8683.33,
+      "permit_cost": 498.56,
+      "utility_cost": 0.0,
+      "total_expenses": 15873.04,
+      "gp": 3365.46
+    },
+    {
       "pid": "t-ZjGfP.TNKJqukmwAx13A",
       "customer": "Jonathan Kreidler",
       "state": "FL",
@@ -621,12 +645,12 @@
       "mat_per_w": 1.753,
       "equip_flag": false,
       "equip_estimated": false,
-      "labor": 10303.4,
+      "labor": 5151.7,
       "equipment": 25878.51,
       "permit_cost": 390.49,
       "utility_cost": 0.0,
-      "total_expenses": 36572.4,
-      "gp": 19209.6
+      "total_expenses": 31420.7,
+      "gp": 24361.3
     },
     {
       "pid": "fOXzZf2FTZCVmHoCnuW-fQ",
