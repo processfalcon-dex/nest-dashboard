@@ -1,5 +1,5 @@
 {
-  "computedAt": "2026-03-28T01:30:28.940915Z",
+  "computedAt": "2026-03-29T01:30:23.991047Z",
   "formula": "GP = CV (funding) - Commission - Labor - Materials - M1 - Other Expenses. Commission = (Net PPW - Redline) x Watts where Net PPW = (CV - Dealer Fee - Adders) / Watts.",
   "totalJobs": 26,
   "skipped": {
@@ -7,9 +7,9 @@
     "no_cv": 130,
     "no_state": 90,
     "equipment_below_threshold": 10,
-    "no_labor": 25,
+    "no_labor": 24,
     "no_redline": 23,
-    "no_equipment": 14
+    "no_equipment": 15
   },
   "byState": [
     {
