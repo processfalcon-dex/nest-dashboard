@@ -281,7 +281,7 @@
     </div>
 
     <!-- KPI Strip -->
-    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mt-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mt-6">
       <div class="stat-card">
         <div class="text-xs text-gray-500 mb-1">Active Jobs</div>
         <div id="kpi-active-jobs" class="text-2xl font-bold text-white loading-shimmer">000</div>
@@ -302,11 +302,6 @@
         <div class="text-xs text-gray-500 mb-1">Avg System Size</div>
         <div id="kpi-avg-system-size" class="text-2xl font-bold text-white loading-shimmer">00</div>
         <div id="kpi-avg-system-size-sub" class="text-xs text-gray-500 mt-1">Loading...</div>
-      </div>
-      <div class="stat-card">
-        <div class="text-xs text-gray-500 mb-1">💰 Pipeline Value</div>
-        <div id="kpi-pipeline-value" class="text-2xl font-bold text-green-400 loading-shimmer">$0</div>
-        <div id="kpi-pipeline-value-sub" class="text-xs text-gray-500 mt-1">Loading...</div>
       </div>
       <div class="stat-card">
         <div class="text-xs text-gray-500 mb-1">🔧 Installs This Week</div>
@@ -513,10 +508,18 @@
   <!-- ADMIN SECTION — gross profit, admin only -->
   <div id="section-admin" class="mt-5" style="display:none;">
     <div class="card p-5">
-      <div class="flex items-center gap-2 mb-5">
-        <span class="text-lg">🔒</span>
-        <h2 class="text-sm font-semibold text-white">Gross Profit Analysis</h2>
-        <span class="text-xs text-gray-500 ml-2">By Branch · By Rep · Admin Only</span>
+      <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">🔒</span>
+          <h2 class="text-sm font-semibold text-white">Gross Profit Analysis</h2>
+          <span class="text-xs text-gray-500 ml-2">By Branch · By Rep · Admin Only</span>
+        </div>
+        <!-- Pipeline Value — admin only -->
+        <div class="stat-card" style="min-width:180px;">
+          <div class="text-xs text-gray-500 mb-1">💰 Pipeline Value</div>
+          <div id="kpi-pipeline-value" class="text-2xl font-bold text-green-400">—</div>
+          <div id="kpi-pipeline-value-sub" class="text-xs text-gray-500 mt-1">Active projects</div>
+        </div>
       </div>
       <div id="admin-content">
         <div class="text-xs text-gray-500 text-center py-4">Loading...</div>
@@ -1182,9 +1185,7 @@
             if (workType !== 'Installation') continue;
             const scheduledStart = parseDate(sw['3Df4p']);
             if (!scheduledStart) continue;
-            // Only count if linked project is active (Name field = projectId)
-            const projectId = (sw['Name'] || '').toString().trim();
-            if (projectId && !activeProjectIds.has(projectId)) continue;
+            // Count all scheduled installs — no active filter (matches Nest calendar view)
             if (scheduledStart >= thisWeek.start && scheduledStart <= thisWeek.end) installsThisWeek++;
             if (scheduledStart >= nextWeek.start && scheduledStart <= nextWeek.end) installsNextWeek++;
             if (scheduledStart >= lastWeek.start && scheduledStart <= lastWeek.end) installsLastWeek++;
@@ -1266,11 +1267,11 @@
         if (msg)    msg.textContent = `Failed to load live data: ${err.message}`;
 
         // Clear shimmer on KPIs, show error state
-        ['kpi-active-jobs','kpi-stalled','kpi-atrisk','kpi-avg-system-size','kpi-pipeline-value','kpi-installs-this-week','kpi-installs-next-week','kpi-submissions-7d'].forEach(id => {
+        ['kpi-active-jobs','kpi-stalled','kpi-atrisk','kpi-avg-system-size','kpi-installs-this-week','kpi-installs-next-week','kpi-submissions-7d'].forEach(id => {
           const el = document.getElementById(id);
           if (el) { el.textContent = '—'; el.classList.remove('loading-shimmer'); }
         });
-        ['kpi-active-jobs-sub','kpi-stalled-sub','kpi-atrisk-sub','kpi-avg-system-size-sub','kpi-pipeline-value-sub','kpi-installs-this-week-sub','kpi-installs-next-week-sub','kpi-submissions-7d-sub'].forEach(id => {
+        ['kpi-active-jobs-sub','kpi-stalled-sub','kpi-atrisk-sub','kpi-avg-system-size-sub','kpi-installs-this-week-sub','kpi-installs-next-week-sub','kpi-submissions-7d-sub'].forEach(id => {
           const el = document.getElementById(id);
           if (el) { el.textContent = 'Data unavailable'; el.className = 'text-xs mt-1 text-red-400'; }
         });
