@@ -154,6 +154,90 @@
     .tag-nest-crm  { background: rgba(59,130,246,0.15);  color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
     .tag-dashboard { background: rgba(139,92,246,0.15);  color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
     .tag-strategy  { background: rgba(249,115,22,0.15);  color: #fb923c; border: 1px solid rgba(249,115,22,0.3); }
+    /* ── Drill-down modal ── */
+    #drill-modal {
+      display: none;
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(2px);
+      align-items: center;
+      justify-content: center;
+    }
+    #drill-modal.open { display: flex; }
+    #drill-modal-box {
+      background: #161b27;
+      border: 1px solid #1e2535;
+      border-radius: 14px;
+      width: 92vw;
+      max-width: 1100px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+    }
+    #drill-modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #1e2535;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    #drill-modal-body {
+      overflow-y: auto;
+      padding: 0;
+      flex: 1;
+    }
+    #drill-modal-body table { width: 100%; border-collapse: collapse; }
+    #drill-modal-body th {
+      position: sticky; top: 0;
+      background: #1c2133;
+      padding: 9px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6b7280;
+      border-bottom: 1px solid #1e2535;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    #drill-modal-body th:hover { color: #d1d5db; }
+    #drill-modal-body td {
+      padding: 8px 14px;
+      font-size: 13px;
+      color: #d1d5db;
+      border-bottom: 1px solid rgba(30,37,53,0.5);
+    }
+    #drill-modal-body tr:hover td { background: rgba(255,255,255,0.02); }
+    .drill-close-btn {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.25);
+      color: #f87171;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .drill-close-btn:hover { background: rgba(239,68,68,0.2); }
+    .drill-csv-btn {
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.25);
+      color: #4ade80;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-right: 8px;
+    }
+    .drill-csv-btn:hover { background: rgba(34,197,94,0.2); }
+    .clickable-metric { cursor: pointer; transition: opacity 0.15s; }
+    .clickable-metric:hover { opacity: 0.8; }
+    .clickable-metric:hover .label::after { content: ' ↗'; font-size: 10px; color: #60a5fa; }
   </style>
 </head>
 <body class="min-h-screen text-gray-100 p-4 md:p-8">
@@ -437,6 +521,23 @@
       <div id="admin-content">
         <div class="text-xs text-gray-500 text-center py-4">Loading...</div>
       </div>
+    </div>
+  </div>
+
+  <!-- DRILL-DOWN MODAL -->
+  <div id="drill-modal" onclick="if(event.target===this)closeDrill()">
+    <div id="drill-modal-box">
+      <div id="drill-modal-header">
+        <div>
+          <div id="drill-modal-title" class="text-base font-semibold text-white"></div>
+          <div id="drill-modal-sub" class="text-xs text-gray-500 mt-0.5"></div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="drill-csv-btn" onclick="exportDrillCSV()">⬇ CSV</button>
+          <button class="drill-close-btn" onclick="closeDrill()">✕ Close</button>
+        </div>
+      </div>
+      <div id="drill-modal-body"></div>
     </div>
   </div>
 
@@ -1155,6 +1256,7 @@
 
         // ── Timestamp ──
         setLastUpdated();
+        setupDrillHandlers(rows, stateMap);
 
       } catch (err) {
         console.error('Dashboard data load failed:', err);
@@ -2241,6 +2343,183 @@
       } catch(e) {
         console.error('Admin GP error:', e);
         container.innerHTML = '<div class="text-xs text-red-400 text-center py-4">GP data unavailable — run nightly cache refresh</div>';
+      }
+    }
+
+    // ─── Drill-down modal engine ──────────────────────────────────────────────
+    let _drillRows = [];       // current dataset
+    let _drillCols = [];       // [{key, label, fmt}]
+    let _drillSort = { col: 0, dir: 1 }; // dir: 1=asc, -1=desc
+
+    function openDrill(title, subtitle, cols, rows) {
+      _drillRows = rows;
+      _drillCols = cols;
+      _drillSort = { col: 0, dir: -1 };
+      document.getElementById('drill-modal-title').textContent = title;
+      document.getElementById('drill-modal-sub').textContent = subtitle || '';
+      renderDrillTable();
+      document.getElementById('drill-modal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDrill() {
+      document.getElementById('drill-modal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function renderDrillTable() {
+      const { col, dir } = _drillSort;
+      const sorted = [..._drillRows].sort((a, b) => {
+        const av = a[col] ?? '';
+        const bv = b[col] ?? '';
+        if (typeof av === 'number' && typeof bv === 'number') return dir * (av - bv);
+        return dir * String(av).localeCompare(String(bv));
+      });
+
+      const thead = _drillCols.map((c, i) => {
+        const arrow = _drillSort.col === i ? (_drillSort.dir === 1 ? ' ↑' : ' ↓') : ' ↕';
+        return `<th onclick="drillSortBy(${i})" style="${_drillSort.col===i?'color:#60a5fa':''}">${c.label}${arrow}</th>`;
+      }).join('');
+
+      const tbody = sorted.map(row => {
+        const tds = _drillCols.map((c, i) => {
+          const val = row[i];
+          const display = c.fmt ? c.fmt(val) : (val ?? '—');
+          return `<td>${escHtml(String(display))}</td>`;
+        }).join('');
+        return `<tr>${tds}</tr>`;
+      }).join('');
+
+      document.getElementById('drill-modal-body').innerHTML =
+        `<table><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>`;
+    }
+
+    function drillSortBy(colIdx) {
+      if (_drillSort.col === colIdx) {
+        _drillSort.dir *= -1;
+      } else {
+        _drillSort.col = colIdx;
+        _drillSort.dir = -1;
+      }
+      renderDrillTable();
+    }
+
+    function exportDrillCSV() {
+      const title = document.getElementById('drill-modal-title').textContent;
+      const header = _drillCols.map(c => `"${c.label}"`).join(',');
+      const rows = _drillRows.map(row =>
+        _drillCols.map((c, i) => {
+          const val = row[i] ?? '';
+          return `"${String(val).replace(/"/g, '""')}"`;
+        }).join(',')
+      ).join('\n');
+      const csv = `${header}\n${rows}`;
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${title.replace(/[^a-z0-9]/gi,'_').toLowerCase()}_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Keyboard close
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrill(); });
+
+    // ─── Drill helpers — build row arrays for each metric ─────────────────────
+
+    function drillOverdue() {
+      if (!_stalledData || !_stalledData.length) return;
+      const cols = [
+        { label: 'Customer', key: 'customer' },
+        { label: 'Stage', key: 'stage' },
+        { label: 'Days in Stage', key: 'bizDaysInStage' },
+        { label: 'SLA (days)', key: 'sla' },
+        { label: 'Status', key: 'status' },
+        { label: 'State', key: 'state' },
+        { label: 'Sales Rep', key: 'rep' },
+      ];
+      const rows = _stalledData.map(item => {
+        const r = item.row;
+        return [
+          `${r[C.customerFirstName]||''} ${r[C.customerLastName]||''}`.trim() || '—',
+          item.stage,
+          item.bizDaysInStage,
+          item.sla,
+          item.status,
+          r[C.state] || '—',
+          r[C.salesRep] || '—',
+        ];
+      });
+      openDrill(
+        '🚨 Stalled Projects',
+        `${rows.length} projects past SLA or at risk`,
+        cols, rows
+      );
+    }
+
+    function drillPipelineByState(stateMap) {
+      if (!stateMap) return;
+      // stateMap = { FL: 45, NC: 22, ... }  — need project-level rows
+      // Use _stalledData context isn't enough; expose via window
+      const rows = Object.entries(stateMap || {})
+        .sort((a,b) => b[1]-a[1])
+        .map(([state, count]) => [state, count]);
+      const cols = [
+        { label: 'State' },
+        { label: 'Active Jobs' },
+      ];
+      openDrill('📊 Pipeline by State', `${rows.length} markets`, cols, rows);
+    }
+
+    // Called after dashboard data loads — expose project rows for drill-downs
+    let _allProjectRows = [];
+    let _stateMapForDrill = {};
+
+    function setupDrillHandlers(rows, stateMap) {
+      _allProjectRows = rows;
+      _stateMapForDrill = stateMap;
+
+      // Wire KPI cards
+      const overdueCard = document.getElementById('kpi-stalled')?.closest('.stat-card');
+      if (overdueCard) {
+        overdueCard.classList.add('clickable-metric');
+        overdueCard.onclick = drillOverdue;
+        overdueCard.title = 'Click to drill down';
+      }
+
+      const atRiskCard = document.getElementById('kpi-atrisk')?.closest('.stat-card');
+      if (atRiskCard) {
+        atRiskCard.classList.add('clickable-metric');
+        atRiskCard.onclick = drillOverdue; // same data, stalled includes both
+        atRiskCard.title = 'Click to drill down';
+      }
+
+      // Active jobs → project list
+      const activeCard = document.getElementById('kpi-active-jobs')?.closest('.stat-card');
+      if (activeCard) {
+        activeCard.classList.add('clickable-metric');
+        activeCard.onclick = () => {
+          const active = rows.filter(r => {
+            const s = (r[C.projectStatus]||'').toLowerCase();
+            return s === 'active' && !r['wWhf7'] && !r['YP24o'] && !r['ryiGt']
+              && (r['G8eYI']||'').toUpperCase() !== 'GOODLEAP (TPO)';
+          });
+          const cols = [
+            { label: 'Customer' }, { label: 'Stage' }, { label: 'State' },
+            { label: 'Sales Rep' }, { label: 'Finance' }, { label: 'Sold Date' },
+          ];
+          const drillRows = active.map(r => [
+            `${r[C.customerFirstName]||''} ${r[C.customerLastName]||''}`.trim(),
+            r[C.projectStatus] || '—',
+            r[C.state] || '—',
+            r[C.salesRep] || '—',
+            r['G8eYI'] || '—',
+            r[C.soldDate] ? r[C.soldDate].slice(0,10) : '—',
+          ]);
+          openDrill('Active Projects', `${drillRows.length} active jobs`, cols, drillRows);
+        };
+        activeCard.title = 'Click to see all active projects';
       }
     }
   </script>
