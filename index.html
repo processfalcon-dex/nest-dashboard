@@ -1822,24 +1822,40 @@
           console.log('No user found for email:', email);
           _userPerms = { admin: false };
         } else {
+          // Field map (2026-03-30 schema):
+          // dueOverDue (oiJlS) = senior ops / admin-level access — used as admin gate
+          // contractor (aISge) = external contractor
+          // All other fields are stage-specific access tabs
+          const isOpsStaff = !!(match.a282l || match.ZNXdy || match.l8how || match.hZWnh ||
+                                 match.gc2cL || match.HdIea || match.PwF7x || match.tuVwM ||
+                                 match.EGvQE || match.Kd7Eg || match['3wMi4'] || match.c1DXs ||
+                                 match.oiJlS || match.lUnWw || match['75w4x'] || match['5PVmH']);
           _userPerms = {
-            admin:             !!match.FpW2l,
-            opsTeam:           !!match.LipQL,
-            contractor:        !!match.aISge,
-            contractorManager: !!match.B6GLW,
-            salesSupport:      !!match.c6v4n,
-            projectMgmt:       !!match.juWNT,
-            pL:                !!match.XrbON,
-            procurement:       !!(match.tAtgt || match['5PVmH']),
+            admin:             !!match.oiJlS,           // dueOverDue = admin/senior gate (JP, Rachael, Victoria, Jose)
+            opsTeam:           isOpsStaff,              // any stage permission = ops team member
+            contractor:        !!match.aISge,           // external contractor
+            contractorManager: !!match.oiJlS,           // same as admin for now
+            salesSupport:      !!match.oiJlS,
+            projectMgmt:       isOpsStaff,
+            pL:                !!match.oiJlS,
+            procurement:       !!match['5PVmH'],        // procurement field
             dueOverDue:        !!match.oiJlS,
+            listTab:           !!match.Fhbph,
+            kanban:            !!match.c1DXs,
             // stage tabs
             scrub:             !!match.a282l,
             siteSurvey:        !!match.ZNXdy,
             engineering:       !!match.l8how,
+            sow:               !!match.hZWnh,
             permitting:        !!match.gc2cL,
+            utility:           !!match.HdIea,
+            preInstallReview:  !!match.PwF7x,
             installation:      !!match.tuVwM,
             inspection:        !!match.EGvQE,
             funding:           !!match.Kd7Eg,
+            hoa:               !!match['3wMi4'],
+            service:           !!match.lUnWw,
+            welcomeCall:       !!match['75w4x'],
           };
           console.log('[Permissions]', _userPerms);
         }
