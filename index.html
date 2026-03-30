@@ -1812,11 +1812,29 @@
 
     async function loadUserPermissions(email) {
       try {
-        // Read from cache — no Glide query needed
-        const cache = await getGlideCache();
-        const data = [{ rows: cache.users || [] }];
-        const users = Array.isArray(data) ? (data[0] || {}).rows || [] : [];
-        const match = users.find(u => (u.iwVVI || '').toLowerCase() === email.toLowerCase());
+        // Query users table LIVE — small table (43 rows), lookup columns need live query
+        // Using cached data for users causes lookup column values to be missing
+        let match = null;
+        try {
+          const liveResp = await fetch(GLIDE_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${GLIDE_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ appID: GLIDE_APP_ID, queries: [{ tableName: 'native-table-mP2H7PaDb3MW0gcfBwdr' }] }),
+          });
+          if (liveResp.ok) {
+            const liveData = await liveResp.json();
+            const liveUsers = (liveData[0] || {}).rows || [];
+            match = liveUsers.find(u => (u.iwVVI || '').toLowerCase() === email.toLowerCase());
+          }
+        } catch(liveErr) {
+          console.warn('Live users fetch failed, falling back to cache:', liveErr);
+        }
+        // Fallback to cache if live fails
+        if (!match) {
+          const cache = await getGlideCache();
+          const cachedUsers = cache.users || [];
+          match = cachedUsers.find(u => (u.iwVVI || '').toLowerCase() === email.toLowerCase());
+        }
 
         if (!match) {
           console.log('No user found for email:', email);
