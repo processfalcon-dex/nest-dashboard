@@ -384,8 +384,8 @@
     </div>
   </div>
 
-  <!-- P&L SECTION — admin / pL role only -->
-  <div id="section-pl" class="mt-5" style="display:none;">
+  <!-- P&L SECTION — hidden, data not accurate yet -->
+  <div id="section-pl" class="mt-5" style="display:none !important;">
     <div class="card p-5">
       <div class="flex items-center gap-2 mb-5">
         <span class="text-lg">💵</span>
@@ -1742,7 +1742,8 @@
         'section-contractor': ['contractor', 'contractorManager', 'admin'],
         'section-sales':      ['salesSupport', 'projectMgmt', 'admin'],
         'section-stalled':    ['dueOverDue', 'opsTeam', 'admin'],
-        'section-pl':         ['pL', 'admin'],
+        // 'section-pl': hidden — data not accurate yet
+        // 'section-pl':         ['pL', 'admin'],
         'section-admin':      ['admin'],
       };
       for (const [id, roles] of Object.entries(sectionMap)) {
@@ -2012,6 +2013,9 @@
             .map(([rep, s]) => ({ rep, ...s, rate: pct(s.realized, s.sold) }))
             .sort((a, b) => b.sold - a.sold);
         }
+        // ── Color helper for realization rate (defined here so window refs work below) ──
+        const rateColor = v => v === null ? 'text-gray-500' : v >= 80 ? 'text-green-400' : v >= 60 ? 'text-yellow-400' : 'text-red-400';
+
         // Store on window for the dropdown handler
         window._repDataByWindow = repDataByWindow;
         window._rateColor = rateColor;
@@ -2072,9 +2076,6 @@
 
         const stateRows = Object.values(byState).sort((a,b) => (avg(b.gps)||0)-(avg(a.gps)||0));
         const repGPRows = Object.values(byRepGP).filter(x=>x.gps.length>=2).sort((a,b)=>(avg(b.gps)||0)-(avg(a.gps)||0));
-
-        // ── Color helper for realization rate ──
-        const rateColor = v => v === null ? 'text-gray-500' : v >= 80 ? 'text-green-400' : v >= 60 ? 'text-yellow-400' : 'text-red-400';
 
         container.innerHTML = `
           <!-- Realization Rate Summary -->
@@ -2213,8 +2214,9 @@
                   const diff = s.avg_gp - overallAvg;
                   const barW = overallAvg ? Math.min(Math.abs(Math.round(s.avg_gp / overallAvg * 100)), 100) : 50;
                   const barColor = diff >= 0 ? 'bg-green-500/60' : 'bg-red-500/60';
+                  const flagged = s.flagged_jobs > 0;
                   return `<tr class="border-b border-gray-800/50 hover:bg-gray-800/20">
-                    <td class="py-2 px-3 text-white">${escHtml(s.rep)}</td>
+                    <td class="py-2 px-3 text-white">${escHtml(s.rep)}${flagged ? ' <span title="'+s.flagged_jobs+' job(s) with equipment $0.85-$0.95/W — may be incomplete" style="color:#facc15;cursor:help;">⚠️</span>' : ''}</td>
                     <td class="py-2 px-3 text-center text-gray-300">${s.n}</td>
                     <td class="py-2 px-3 text-center font-bold ${gpColor(s.avg_gp)}">${fmtDollar(s.avg_gp)}</td>
                     <td class="py-2 px-3">
@@ -2229,9 +2231,11 @@
             </table>
           </div>
           <div class="mt-4 text-xs text-gray-600">
-            Excluded: ${data.skipped.no_system_size || 0} jobs missing contract kW ·
+            Excluded: ${data.skipped.no_system_size || 0} missing contract kW ·
+            ${data.skipped.equipment_below_threshold || 0} missing shop equipment (&lt;$0.85/W) ·
             ${data.skipped.no_labor || 0} missing labor invoices ·
-            ${data.skipped.no_redline || 0} missing redline config
+            ${data.skipped.no_redline || 0} missing redline ·
+            <span style="color:#facc15;">⚠️ = equipment $0.85–$0.95/W, may be incomplete</span>
           </div>`;
 
       } catch(e) {
