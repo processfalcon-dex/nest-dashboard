@@ -2338,10 +2338,35 @@
         const overallAvg = data.byRep.length ? Math.round(data.byRep.reduce((s,r) => s + r.avg_gp * r.n, 0) / data.byRep.reduce((s,r) => s + r.n, 0)) : 0;
         const computedAt = data.computedAt ? new Date(data.computedAt).toLocaleString('en-US', {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '—';
 
+        // ── 30/60/90 rolling GP cohorts ──
+        const now = new Date();
+        const gpCohorts = [30, 60, 90].map(days => {
+          const cutoff = new Date(now - days * 24 * 3600 * 1000);
+          const jobs = (data.jobs || []).filter(j => {
+            if (!j.install_date) return false;
+            return new Date(j.install_date) >= cutoff;
+          });
+          const avg = jobs.length ? Math.round(jobs.reduce((s,j) => s + j.gp, 0) / jobs.length) : null;
+          const total = jobs.length ? Math.round(jobs.reduce((s,j) => s + j.gp, 0)) : null;
+          return { days, jobs: jobs.length, avg, total };
+        });
+
         container.innerHTML = `
           <div class="text-xs text-gray-600 mb-4">
             Formula: CV − Dealer Fee − Adders = Net Price → Net PPW vs Redline = Commission → Net Price − Commission − Labor − Equipment
             <span class="ml-3 text-gray-700">· ${data.totalJobs} jobs with complete data · Updated ${computedAt}</span>
+          </div>
+
+          <!-- Rolling GP Cohorts -->
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Rolling GP Average — By Install Date</h3>
+          <div class="grid grid-cols-3 gap-3 mb-6">
+            ${gpCohorts.map(c => `
+              <div class="rounded-lg bg-white/5 border border-white/10 p-4 text-center">
+                <div class="text-xs text-gray-500 mb-1">Last ${c.days} Days</div>
+                <div class="text-2xl font-bold ${gpColor(c.avg)} mb-1">${c.avg !== null ? fmtDollar(c.avg) : '—'}</div>
+                <div class="text-xs text-gray-500">avg GP · ${c.jobs} job${c.jobs !== 1 ? 's' : ''}</div>
+                ${c.total !== null ? `<div class="text-xs text-gray-600 mt-1">Total: ${fmtDollar(c.total)}</div>` : ''}
+              </div>`).join('')}
           </div>
 
           <!-- By State -->
