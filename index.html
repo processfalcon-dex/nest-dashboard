@@ -1271,7 +1271,8 @@
         setLastUpdated();
 
         // ── Install Alert cross-reference ──
-        const cachedSW = cache.scheduledWork || [];
+        const _alertCache = await getGlideCache();
+        const cachedSW = (_alertCache && _alertCache.scheduledWork) || [];
         checkInstallAlerts(rows, cachedSW);
 
         setupDrillHandlers(rows, stateMap);
