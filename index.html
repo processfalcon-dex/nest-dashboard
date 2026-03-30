@@ -427,6 +427,7 @@
               <th class="text-left py-2 px-3 pb-3 sortable" data-col="stage" onclick="sortStalledBy('stage')">Stage <i class="sort-icon">↕</i></th>
               <th class="text-center py-2 px-3 pb-3 sortable" data-col="days" onclick="sortStalledBy('days')">Days / SLA <i class="sort-icon">↕</i></th>
               <th class="text-center py-2 px-3 pb-3 sortable" data-col="status" onclick="sortStalledBy('status')">Status <i class="sort-icon">↕</i></th>
+              <th class="text-left py-2 px-3 pb-3 sortable" data-col="finance" onclick="sortStalledBy('finance')">Finance <i class="sort-icon">↕</i></th>
               <th class="text-left py-2 px-3 pb-3 sortable" data-col="state" onclick="sortStalledBy('state')">State <i class="sort-icon">↕</i></th>
               <th class="text-left py-2 px-3 pb-3 sortable" data-col="rep" onclick="sortStalledBy('rep')">Sales Rep <i class="sort-icon">↕</i></th>
             </tr>
@@ -972,11 +973,12 @@
           const ln = (row[C.customerLastName]  || '').trim();
           return `${ln} ${fn}`.toLowerCase();
         }
-        case 'stage':  return STAGE_ORDER.indexOf(stage);
-        case 'days':   return bizDaysInStage ?? -1;
-        case 'status': return STATUS_ORDER[status] ?? 99;
-        case 'state':  return (row[C.state] || '').trim().toLowerCase();
-        case 'rep':    return (row[C.salesRep] || '').trim().toLowerCase();
+        case 'stage':   return STAGE_ORDER.indexOf(stage);
+        case 'days':    return bizDaysInStage ?? -1;
+        case 'status':  return STATUS_ORDER[status] ?? 99;
+        case 'finance': return (row['G8eYI'] || '').trim().toLowerCase();
+        case 'state':   return (row[C.state] || '').trim().toLowerCase();
+        case 'rep':     return (row[C.salesRep] || '').trim().toLowerCase();
         default:       return 0;
       }
     }
@@ -1009,6 +1011,15 @@
         const name      = [firstName, lastName].filter(Boolean).join(' ') || 'Unknown';
         const state     = (row[C.state]    || '—').trim();
         const rep       = (row[C.salesRep] || '—').trim();
+        const finRaw    = (row['G8eYI']    || '—').trim();
+        // Shorten common finance names for display
+        const finLabel  = finRaw
+          .replace(/Lightreach \(TPO\)/i, 'Lightreach')
+          .replace(/Enfin \(TPO\)/i, 'Enfin (TPO)')
+          .replace(/Enfin \(Loan\)/i, 'Enfin (Loan)')
+          .replace(/GOODLEAP \(loan\)/i, 'GoodLeap')
+          .replace(/Climate First Solar \(loan\)/i, 'Climate First')
+          .replace(/Mosaic \(old.*?\)/i, 'Mosaic');
 
         const isOverdue = status === 'overdue';
         const rowClass  = isOverdue ? 'row-red' : 'row-yellow';
@@ -1030,6 +1041,7 @@
               <span class="${daysClass}">${escHtml(slaLabel)}</span>
             </td>
             <td class="py-2.5 px-3 text-center">${statusBadge}</td>
+            <td class="py-2.5 px-3 text-gray-400 text-xs">${escHtml(finLabel)}</td>
             <td class="py-2.5 px-3 text-gray-300">${escHtml(state)}</td>
             <td class="py-2.5 px-3 text-gray-300">${escHtml(rep)}</td>
           </tr>`;
@@ -2565,13 +2577,14 @@
     function drillOverdue() {
       if (!_stalledData || !_stalledData.length) return;
       const cols = [
-        { label: 'Customer', key: 'customer' },
-        { label: 'Stage', key: 'stage' },
-        { label: 'Days in Stage', key: 'bizDaysInStage' },
-        { label: 'SLA (days)', key: 'sla' },
-        { label: 'Status', key: 'status' },
-        { label: 'State', key: 'state' },
-        { label: 'Sales Rep', key: 'rep' },
+        { label: 'Customer' },
+        { label: 'Stage' },
+        { label: 'Days in Stage' },
+        { label: 'SLA (days)' },
+        { label: 'Status' },
+        { label: 'Finance' },
+        { label: 'State' },
+        { label: 'Sales Rep' },
       ];
       const rows = _stalledData.map(item => {
         const r = item.row;
@@ -2581,6 +2594,7 @@
           item.bizDaysInStage,
           item.sla,
           item.status,
+          (r['G8eYI'] || '—').trim(),
           r[C.state] || '—',
           r[C.salesRep] || '—',
         ];
