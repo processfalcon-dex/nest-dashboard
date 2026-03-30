@@ -2367,10 +2367,11 @@
           <div class="grid grid-cols-3 gap-3 mb-6">
             ${gpCohorts.map(c => {
               const cutoff = new Date(now - c.days*86400000).toISOString().slice(0,10);
-              const cohortJobs = (data.jobs||[]).filter(j => j.install_date && j.install_date >= cutoff);
+              const cohortKey = 'gp_cohort_' + c.days;
+              window[cohortKey] = (data.jobs||[]).filter(j => j.install_date && j.install_date >= cutoff);
               return `
               <div class="rounded-lg bg-white/5 border border-white/10 p-4 text-center cursor-pointer clickable-metric hover:bg-white/10 transition-colors"
-                   onclick="drillGPJobs(${JSON.stringify(cohortJobs)}, 'GP — Last ${c.days} Days', '${c.jobs} jobs · by install date')">
+                   onclick="drillGPJobs(window['${cohortKey}'], 'GP \u2014 Last ${c.days} Days', '${c.jobs} jobs \u00b7 by install date')">
                 <div class="text-xs text-gray-500 mb-1">Last ${c.days} Days <span class="text-gray-600">↗</span></div>
                 <div class="text-2xl font-bold ${gpColor(c.avg)} mb-1">${c.avg !== null ? fmtDollar(c.avg) : '—'}</div>
                 <div class="text-xs text-gray-500">avg GP · ${c.jobs} job${c.jobs !== 1 ? 's' : ''}</div>
@@ -2390,14 +2391,18 @@
                 <th class="text-center py-2 px-3 text-gray-500 text-xs font-semibold uppercase">Total GP</th>
               </tr></thead>
               <tbody>
-                ${data.byState.map(s => `
+                ${data.byState.map(s => {
+                  const key = 'gp_state_' + s.state;
+                  window[key] = data.jobs.filter(j=>j.state===s.state);
+                  return `
                   <tr class="border-b border-gray-800/50 hover:bg-gray-800/20 cursor-pointer clickable-metric"
-                      onclick="drillGPJobs(${JSON.stringify(data.jobs.filter(j=>j.state===s.state))}, 'GP — ${escHtml(s.state)} Branch', '${s.n} jobs')">
+                      onclick="drillGPJobs(window['${key}'], 'GP \u2014 ${escHtml(s.state)} Branch', '${s.n} jobs')">
                     <td class="py-2 px-3 font-semibold text-white">${escHtml(s.state)} <span class="text-gray-600 text-xs">↗</span></td>
                     <td class="py-2 px-3 text-center text-gray-300">${s.n}</td>
                     <td class="py-2 px-3 text-center font-bold ${gpColor(s.avg_gp)}">${fmtDollar(s.avg_gp)}</td>
                     <td class="py-2 px-3 text-center text-gray-300">${fmtDollar(s.total_gp)}</td>
-                  </tr>`).join('')}
+                  </tr>`;
+                }).join('')}
               </tbody>
             </table>
           </div>
@@ -2418,9 +2423,10 @@
                   const barW = overallAvg ? Math.min(Math.abs(Math.round(s.avg_gp / overallAvg * 100)), 100) : 50;
                   const barColor = diff >= 0 ? 'bg-green-500/60' : 'bg-red-500/60';
                   const flagged = s.flagged_jobs > 0;
-                  const repJobs = data.jobs.filter(j=>j.rep.toLowerCase()===s.rep.toLowerCase());
+                  const repKey = 'gp_rep_' + s.n + '_' + s.rep.slice(0,8).replace(/\W+/g,'');
+                  window[repKey] = data.jobs.filter(j=>j.rep.toLowerCase()===s.rep.toLowerCase());
                   return `<tr class="border-b border-gray-800/50 hover:bg-gray-800/20 cursor-pointer clickable-metric"
-                      onclick="drillGPJobs(${JSON.stringify(repJobs)}, 'GP — ${escHtml(s.rep)}', '${s.n} jobs')">
+                      onclick="drillGPJobs(window['${repKey}'], 'GP \u2014 ${escHtml(s.rep)}', '${s.n} jobs')">
                     <td class="py-2 px-3 text-white">${escHtml(s.rep)}${flagged ? ' <span title="'+s.flagged_jobs+' job(s) with equipment $0.85-$0.95/W — may be incomplete" style="color:#facc15;cursor:help;">⚠️</span>' : ''} <span class="text-gray-600 text-xs">↗</span></td>
                     <td class="py-2 px-3 text-center text-gray-300">${s.n}</td>
                     <td class="py-2 px-3 text-center font-bold ${gpColor(s.avg_gp)}">${fmtDollar(s.avg_gp)}</td>
