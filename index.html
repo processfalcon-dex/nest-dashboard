@@ -2402,6 +2402,7 @@
         const crew = (sw['ZEBRm'] || '—').trim();
         flagged.push({
           pid, cust, crew,
+          state: (proj['OvfY8'] || '—').trim(),
           date: dt.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }),
           notes: alertProjects[pid],
           dateObj: dt,
@@ -2417,12 +2418,13 @@
       const list   = document.getElementById('install-alert-list');
       banner.style.display = 'block';
 
-      list.innerHTML = flagged.map(f =>
-        `<div class="flex gap-2 items-baseline">
+      list.innerHTML = flagged.map((f, i) =>
+        `<div class="flex gap-2 items-baseline hover:bg-red-900/20 rounded px-1 py-0.5 cursor-pointer transition-colors" onclick="drillSingleAlert(${i})" title="Click to see full details">
           <span class="font-semibold text-red-300 shrink-0">${f.date}</span>
-          <span class="text-red-100">${escHtml(f.cust)}</span>
+          <span class="text-red-100 font-medium">${escHtml(f.cust)}</span>
           <span class="text-red-400/60">· ${escHtml(f.crew)}</span>
           <span class="text-red-200/60 italic truncate max-w-xs">— ${escHtml(f.notes.slice(0,80))}${f.notes.length>80?'…':''}</span>
+          <span class="text-red-400/40 ml-auto shrink-0 text-xs">details ↗</span>
         </div>`
       ).join('');
     }
@@ -2439,6 +2441,42 @@
       openDrill('🚨 Install Alerts — Scheduled Jobs With Active Holds',
         `${rows.length} job${rows.length===1?'':'s'} need attention before install`,
         cols, rows);
+    }
+
+    function drillSingleAlert(idx) {
+      const f = _installAlertRows[idx];
+      if (!f) return;
+      // Render a rich detail view inside the modal
+      document.getElementById('drill-modal-title').textContent = `🚨 Install Hold — ${f.cust}`;
+      document.getElementById('drill-modal-sub').textContent = `Scheduled ${f.date} · Crew: ${f.crew}`;
+      document.getElementById('drill-modal-body').innerHTML = `
+        <div class="p-5 space-y-4">
+          <div class="rounded-lg border border-red-500/30 bg-red-950/30 p-4">
+            <div class="text-xs font-semibold text-red-400 uppercase tracking-wider mb-2">⚠️ Hold Notes</div>
+            <div class="text-sm text-red-100 whitespace-pre-wrap leading-relaxed">${escHtml(f.notes)}</div>
+          </div>
+          <div class="grid grid-cols-2 gap-3 text-sm">
+            <div class="rounded-lg bg-white/5 p-3">
+              <div class="text-xs text-gray-500 mb-1">Customer</div>
+              <div class="text-white font-medium">${escHtml(f.cust)}</div>
+            </div>
+            <div class="rounded-lg bg-white/5 p-3">
+              <div class="text-xs text-gray-500 mb-1">Install Date</div>
+              <div class="text-white font-medium">${escHtml(f.date)}</div>
+            </div>
+            <div class="rounded-lg bg-white/5 p-3">
+              <div class="text-xs text-gray-500 mb-1">Crew</div>
+              <div class="text-white font-medium">${escHtml(f.crew)}</div>
+            </div>
+            <div class="rounded-lg bg-white/5 p-3">
+              <div class="text-xs text-gray-500 mb-1">State</div>
+              <div class="text-white font-medium">${escHtml(f.state || '—')}</div>
+            </div>
+          </div>
+          ${_installAlertRows.length > 1 ? `<div class="text-xs text-gray-500 text-center pt-2 cursor-pointer hover:text-gray-300 transition-colors" onclick="drillInstallAlerts()">← View all ${_installAlertRows.length} flagged jobs</div>` : ''}
+        </div>`;
+      document.getElementById('drill-modal').classList.add('open');
+      document.body.style.overflow = 'hidden';
     }
 
     // ─── Drill-down modal engine ──────────────────────────────────────────────
