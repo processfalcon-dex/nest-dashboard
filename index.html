@@ -2339,86 +2339,6 @@
         const overallAvg = data.byRep.length ? Math.round(data.byRep.reduce((s,r) => s + r.avg_gp * r.n, 0) / data.byRep.reduce((s,r) => s + r.n, 0)) : 0;
         const computedAt = data.computedAt ? new Date(data.computedAt).toLocaleString('en-US', {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '—';
 
-        // ── NTP → Install timeline ──
-        {
-          const cache2 = await getGlideCache();
-          const allProj = cache2.projects || [];
-          // Funding rows from server-side cache (includes NTP date field 2Hv1J)
-          const fundData = cache2.funding || [];
-          const fundByPid = {};
-          for (const f of fundData) { if (f.Name) fundByPid[f.Name] = f; }
-          const projById = {};
-          for (const p of allProj) projById[p['$rowID']] = p;
-
-          const windows = [30,60,90].map(d => ({ days: d, cutoff: new Date(now - d*86400000) }));
-          const stateData = {};
-          const companyData = { 30:[], 60:[], 90:[] };
-
-          for (const [pid, fund] of Object.entries(fundByPid)) {
-            const proj = projById[pid]; if (!proj) continue;
-            if (proj['wWhf7'] || proj['YP24o'] || proj['ryiGt']) continue;
-            if ((proj['G8eYI']||'').toUpperCase()==='GOODLEAP (TPO)') continue;
-            const installStr = (proj['0EPVw']||'').slice(0,10);
-            const ntpStr = (fund['2Hv1J']||'').slice(0,10);
-            if (!installStr || !ntpStr || installStr.length < 10 || ntpStr.length < 10) continue;
-            const inst = new Date(installStr); const ntp = new Date(ntpStr);
-            const diff = Math.round((inst - ntp) / 86400000);
-            if (diff <= 0 || diff > 365) continue;
-            const state = (proj['OvfY8']||'?').trim().toUpperCase();
-            if (!stateData[state]) stateData[state] = { 30:[], 60:[], 90:[] };
-            for (const w of windows) {
-              if (inst >= w.cutoff) {
-                stateData[state][w.days].push(diff);
-                companyData[w.days].push(diff);
-              }
-            }
-          }
-
-          const avgDays = arr => arr.length ? (arr.reduce((s,v) => s+v,0)/arr.length).toFixed(1) : null;
-          const daysColor = d => d===null ? 'text-gray-500' : d<=30 ? 'text-green-400' : d<=60 ? 'text-yellow-400' : 'text-red-400';
-          const fmtDays = d => d===null ? '—' : `${d}d`;
-
-          const validStates = Object.entries(stateData)
-            .filter(([s,_]) => s.length <= 2 && s !== '?')
-            .sort((a,b) => a[0].localeCompare(b[0]));
-
-          const colHeader = `<th class="text-center py-2 px-3 text-gray-500 text-xs font-semibold uppercase">`;
-          const timelineHtml = `
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm border-collapse">
-                <thead><tr class="border-b border-gray-800">
-                  <th class="text-left py-2 px-3 text-gray-500 text-xs font-semibold uppercase">Branch</th>
-                  ${colHeader}Last 30d <span class="font-normal text-gray-600">(n)</span></th>
-                  ${colHeader}Last 60d</th>
-                  ${colHeader}Last 90d</th>
-                </tr></thead>
-                <tbody>
-                  ${validStates.map(([state, d]) => {
-                    const a30 = avgDays(d[30]); const a60 = avgDays(d[60]); const a90 = avgDays(d[90]);
-                    return `<tr class="border-b border-gray-800/50 hover:bg-gray-800/20">
-                      <td class="py-2 px-3 font-semibold text-white">${escHtml(state)}</td>
-                      <td class="py-2 px-3 text-center font-bold ${daysColor(parseFloat(a30))}">${fmtDays(a30)} <span class="text-gray-600 font-normal text-xs">(${d[30].length})</span></td>
-                      <td class="py-2 px-3 text-center font-bold ${daysColor(parseFloat(a60))}">${fmtDays(a60)} <span class="text-gray-600 font-normal text-xs">(${d[60].length})</span></td>
-                      <td class="py-2 px-3 text-center font-bold ${daysColor(parseFloat(a90))}">${fmtDays(a90)} <span class="text-gray-600 font-normal text-xs">(${d[90].length})</span></td>
-                    </tr>`;
-                  }).join('')}
-                  <tr class="border-t-2 border-gray-700">
-                    <td class="py-2 px-3 font-bold text-white">Company Avg</td>
-                    <td class="py-2 px-3 text-center font-bold ${daysColor(parseFloat(avgDays(companyData[30])))}">
-                      ${fmtDays(avgDays(companyData[30]))} <span class="text-gray-600 font-normal text-xs">(${companyData[30].length})</span></td>
-                    <td class="py-2 px-3 text-center font-bold ${daysColor(parseFloat(avgDays(companyData[60])))}">
-                      ${fmtDays(avgDays(companyData[60]))} <span class="text-gray-600 font-normal text-xs">(${companyData[60].length})</span></td>
-                    <td class="py-2 px-3 text-center font-bold ${daysColor(parseFloat(avgDays(companyData[90])))}">
-                      ${fmtDays(avgDays(companyData[90]))} <span class="text-gray-600 font-normal text-xs">(${companyData[90].length})</span></td>
-                  </tr>
-                </tbody>
-              </table>
-              <div class="text-xs text-gray-700 mt-2">Green ≤30d · Yellow ≤60d · Red &gt;60d · Excludes GoodLeap TPO, Guardian, GoodPWR, Special</div>
-            </div>`;
-          const tlContainer = document.getElementById('install-timeline-section');
-          if (tlContainer) tlContainer.innerHTML = timelineHtml;
-        }
-
         // ── 30/60/90 rolling GP cohorts ──
         const now = new Date();
         const gpCohorts = [30, 60, 90].map(days => {
@@ -2514,6 +2434,89 @@
             ${data.skipped.no_redline || 0} missing redline ·
             <span style="color:#facc15;">⚠️ = equipment $0.85–$0.95/W, may be incomplete</span>
           </div>`;
+
+        // ── NTP → Install timeline (runs after DOM is set) ──
+        try {
+          const ntpCache = await getGlideCache();
+          const ntpProj = ntpCache.projects || [];
+          const fundData = ntpCache.funding || [];
+          if (!fundData.length) throw new Error('funding not cached yet');
+          const fundByPid = {};
+          for (const f of fundData) { if (f.Name) fundByPid[f.Name] = f; }
+          const projById2 = {};
+          for (const p of ntpProj) projById2[p['$rowID']] = p;
+
+          const ntpNow = new Date();
+          const ntpWindows = [30,60,90].map(d => ({ days: d, cutoff: new Date(ntpNow - d*86400000) }));
+          const stateData = {};
+          const companyData = { 30:[], 60:[], 90:[] };
+
+          for (const [pid, fund] of Object.entries(fundByPid)) {
+            const proj = projById2[pid]; if (!proj) continue;
+            if (proj['wWhf7'] || proj['YP24o'] || proj['ryiGt']) continue;
+            if ((proj['G8eYI']||'').toUpperCase()==='GOODLEAP (TPO)') continue;
+            const installStr = (proj['0EPVw']||'').slice(0,10);
+            const ntpStr = (fund['2Hv1J']||'').slice(0,10);
+            if (!installStr || !ntpStr || installStr.length < 10 || ntpStr.length < 10) continue;
+            const inst = new Date(installStr); const ntp = new Date(ntpStr);
+            const diff = Math.round((inst - ntp) / 86400000);
+            if (diff <= 0 || diff > 365) continue;
+            const state = (proj['OvfY8']||'?').trim().toUpperCase();
+            if (!stateData[state]) stateData[state] = { 30:[], 60:[], 90:[] };
+            for (const w of ntpWindows) {
+              if (inst >= w.cutoff) {
+                stateData[state][w.days].push(diff);
+                companyData[w.days].push(diff);
+              }
+            }
+          }
+
+          const avgDays2 = arr => arr.length ? (arr.reduce((s,v)=>s+v,0)/arr.length).toFixed(1) : null;
+          const daysColor2 = d => d===null ? 'text-gray-500' : d<=30 ? 'text-green-400' : d<=60 ? 'text-yellow-400' : 'text-red-400';
+          const fmtDays2 = d => d===null ? '—' : `${d}d`;
+          const validStates = Object.entries(stateData)
+            .filter(([s]) => s.length <= 2 && s !== '?')
+            .sort((a,b) => a[0].localeCompare(b[0]));
+
+          const timelineHtml = `<div class="overflow-x-auto">
+            <table class="w-full text-sm border-collapse">
+              <thead><tr class="border-b border-gray-800">
+                <th class="text-left py-2 px-3 text-gray-500 text-xs font-semibold uppercase">Branch</th>
+                <th class="text-center py-2 px-3 text-gray-500 text-xs font-semibold uppercase">Last 30d</th>
+                <th class="text-center py-2 px-3 text-gray-500 text-xs font-semibold uppercase">Last 60d</th>
+                <th class="text-center py-2 px-3 text-gray-500 text-xs font-semibold uppercase">Last 90d</th>
+              </tr></thead>
+              <tbody>
+                ${validStates.map(([state, d]) => {
+                  const a30=avgDays2(d[30]),a60=avgDays2(d[60]),a90=avgDays2(d[90]);
+                  return `<tr class="border-b border-gray-800/50 hover:bg-gray-800/20">
+                    <td class="py-2 px-3 font-semibold text-white">${escHtml(state)}</td>
+                    <td class="py-2 px-3 text-center font-bold ${daysColor2(parseFloat(a30))}">${fmtDays2(a30)} <span class="text-gray-600 font-normal text-xs">(${d[30].length})</span></td>
+                    <td class="py-2 px-3 text-center font-bold ${daysColor2(parseFloat(a60))}">${fmtDays2(a60)} <span class="text-gray-600 font-normal text-xs">(${d[60].length})</span></td>
+                    <td class="py-2 px-3 text-center font-bold ${daysColor2(parseFloat(a90))}">${fmtDays2(a90)} <span class="text-gray-600 font-normal text-xs">(${d[90].length})</span></td>
+                  </tr>`;
+                }).join('')}
+                <tr class="border-t-2 border-gray-700">
+                  <td class="py-2 px-3 font-bold text-white">Company Avg</td>
+                  <td class="py-2 px-3 text-center font-bold ${daysColor2(parseFloat(avgDays2(companyData[30])))}">
+                    ${fmtDays2(avgDays2(companyData[30]))} <span class="text-gray-600 font-normal text-xs">(${companyData[30].length})</span></td>
+                  <td class="py-2 px-3 text-center font-bold ${daysColor2(parseFloat(avgDays2(companyData[60])))}">
+                    ${fmtDays2(avgDays2(companyData[60]))} <span class="text-gray-600 font-normal text-xs">(${companyData[60].length})</span></td>
+                  <td class="py-2 px-3 text-center font-bold ${daysColor2(parseFloat(avgDays2(companyData[90])))}">
+                    ${fmtDays2(avgDays2(companyData[90]))} <span class="text-gray-600 font-normal text-xs">(${companyData[90].length})</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="text-xs text-gray-700 mt-2">Green ≤30d · Yellow ≤60d · Red &gt;60d</div>
+          </div>`;
+
+          const tlEl = document.getElementById('install-timeline-section');
+          if (tlEl) tlEl.innerHTML = timelineHtml;
+        } catch(ntpErr) {
+          console.warn('NTP timeline:', ntpErr.message);
+          const tlEl = document.getElementById('install-timeline-section');
+          if (tlEl) tlEl.innerHTML = '<div class="text-xs text-gray-600 italic">Funding cache not yet populated — will appear after tonight\'s refresh.</div>';
+        }
 
       } catch(e) {
         console.error('Admin GP error:', e);
