@@ -280,6 +280,18 @@
       </div>
     </div>
 
+    <!-- Install Alert Banner -->
+    <div id="install-alert-banner" style="display:none;" class="mt-4 rounded-xl border border-red-500/40 bg-red-950/40 p-4 cursor-pointer" onclick="drillInstallAlerts()" title="Click to see flagged jobs">
+      <div class="flex items-start gap-3">
+        <span class="text-2xl mt-0.5">🚨</span>
+        <div class="flex-1">
+          <div class="text-sm font-bold text-red-300 mb-1">Install Alert — Jobs Scheduled With Active Holds</div>
+          <div id="install-alert-list" class="text-xs text-red-200/80 space-y-1"></div>
+        </div>
+        <span class="text-xs text-red-400/60 mt-1">↗ click for details</span>
+      </div>
+    </div>
+
     <!-- KPI Strip -->
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mt-6">
       <div class="stat-card">
@@ -1257,6 +1269,11 @@
 
         // ── Timestamp ──
         setLastUpdated();
+
+        // ── Install Alert cross-reference ──
+        const cachedSW = cache.scheduledWork || [];
+        checkInstallAlerts(rows, cachedSW);
+
         setupDrillHandlers(rows, stateMap);
 
       } catch (err) {
@@ -2345,6 +2362,83 @@
         console.error('Admin GP error:', e);
         container.innerHTML = '<div class="text-xs text-red-400 text-center py-4">GP data unavailable — run nightly cache refresh</div>';
       }
+    }
+
+    // ─── Install Alert cross-reference ───────────────────────────────────────
+    let _installAlertRows = [];
+
+    function checkInstallAlerts(projectRows, swRows) {
+      const now = new Date();
+      const sevenDaysOut = new Date(now.getTime() + 7 * 24 * 3600 * 1000);
+
+      // Build alert project map: rowID → notes
+      const alertProjects = {};
+      for (const r of projectRows) {
+        if (r['3Oc9i'] === true || r['3Oc9i'] === 'true') {
+          alertProjects[r['$rowID']] = (r['pw2zP'] || '').trim() || 'No notes left';
+        }
+      }
+      if (!Object.keys(alertProjects).length) return;
+
+      // Find scheduled installs in next 7 days for flagged projects
+      const projById = {};
+      for (const r of projectRows) projById[r['$rowID']] = r;
+
+      const flagged = [];
+      const seen = new Set();
+      for (const sw of swRows) {
+        if ((sw['ZOXBN'] || '').trim() !== 'Installation') continue;
+        const pid = (sw['Name'] || '').trim();
+        if (!alertProjects[pid]) continue;
+        if (seen.has(pid)) continue;
+        const scheduledStr = sw['3Df4p'];
+        if (!scheduledStr) continue;
+        let dt;
+        try { dt = new Date(scheduledStr); } catch { continue; }
+        if (dt < now || dt > sevenDaysOut) continue;
+        seen.add(pid);
+        const proj = projById[pid] || {};
+        const cust = `${proj['JBtiy'] || ''} ${proj['TTYBa'] || ''}`.trim() || pid.slice(0,10);
+        const crew = (sw['ZEBRm'] || '—').trim();
+        flagged.push({
+          pid, cust, crew,
+          date: dt.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }),
+          notes: alertProjects[pid],
+          dateObj: dt,
+        });
+      }
+
+      if (!flagged.length) return;
+
+      flagged.sort((a, b) => a.dateObj - b.dateObj);
+      _installAlertRows = flagged;
+
+      const banner = document.getElementById('install-alert-banner');
+      const list   = document.getElementById('install-alert-list');
+      banner.style.display = 'block';
+
+      list.innerHTML = flagged.map(f =>
+        `<div class="flex gap-2 items-baseline">
+          <span class="font-semibold text-red-300 shrink-0">${f.date}</span>
+          <span class="text-red-100">${escHtml(f.cust)}</span>
+          <span class="text-red-400/60">· ${escHtml(f.crew)}</span>
+          <span class="text-red-200/60 italic truncate max-w-xs">— ${escHtml(f.notes.slice(0,80))}${f.notes.length>80?'…':''}</span>
+        </div>`
+      ).join('');
+    }
+
+    function drillInstallAlerts() {
+      if (!_installAlertRows.length) return;
+      const cols = [
+        { label: 'Install Date' },
+        { label: 'Customer' },
+        { label: 'Crew' },
+        { label: '⚠️ Hold Notes' },
+      ];
+      const rows = _installAlertRows.map(f => [f.date, f.cust, f.crew, f.notes]);
+      openDrill('🚨 Install Alerts — Scheduled Jobs With Active Holds',
+        `${rows.length} job${rows.length===1?'':'s'} need attention before install`,
+        cols, rows);
     }
 
     // ─── Drill-down modal engine ──────────────────────────────────────────────
