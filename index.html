@@ -665,6 +665,7 @@
         'native-table-O6GgiSELTGKhf46nikQF': 'contractors',
         'native-table-efd62ae1-fc15-4a15-b451-9539501c3951': 'tasks',
         'native-table-515b3351-47ce-48a6-aef6-2b967354a633': 'revisionLog',
+        'native-table-xTZOuwFnGRVnAduY5A8O':                 'funding',
       };
       const key = TABLE_KEY_MAP[tableId];
       if (key && cache[key]) return cache[key];
@@ -2342,14 +2343,8 @@
         {
           const cache2 = await getGlideCache();
           const allProj = cache2.projects || [];
-          // Funding rows for NTP date (2Hv1J)
-          const fundResp = await fetch(GLIDE_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${GLIDE_TOKEN}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ appID: GLIDE_APP_ID, queries: [{ tableName: 'native-table-xTZOuwFnGRVnAduY5A8O' }] }),
-          });
-          let fundData = [];
-          if (fundResp.ok) { const fd = await fundResp.json(); fundData = (fd[0]||{}).rows||[]; }
+          // Funding rows from server-side cache (includes NTP date field 2Hv1J)
+          const fundData = cache2.funding || [];
           const fundByPid = {};
           for (const f of fundData) { if (f.Name) fundByPid[f.Name] = f; }
           const projById = {};

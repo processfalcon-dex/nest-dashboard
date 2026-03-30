@@ -26,6 +26,7 @@ const TABLES = {
   contractors:      'native-table-O6GgiSELTGKhf46nikQF',
   tasks:            'native-table-efd62ae1-fc15-4a15-b451-9539501c3951',
   revisionLog:      'native-table-515b3351-47ce-48a6-aef6-2b967354a633',
+  funding:          'native-table-xTZOuwFnGRVnAduY5A8O',
 };
 
 async function fetchTable(tableId) {
