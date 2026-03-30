@@ -2422,7 +2422,8 @@
       const alertProjects = {};
       for (const r of projectRows) {
         if (r['3Oc9i'] === true || r['3Oc9i'] === 'true') {
-          alertProjects[r['$rowID']] = (r['pw2zP'] || '').trim() || 'No notes left';
+          // CKica = raw tempAlertNotes field (always populated); pw2zP = lookup (often empty)
+        alertProjects[r['$rowID']] = (r['CKica'] || r['pw2zP'] || '').trim() || 'No notes left';
         }
       }
       if (!Object.keys(alertProjects).length) return;
