@@ -1,12 +1,12 @@
 {
-  "computedAt": "2026-03-31T01:30:30.810854Z",
+  "computedAt": "2026-04-01T01:30:22.830450Z",
   "formula": "GP = CV (funding) - Commission - Labor - Materials - M1 - Other Expenses. Commission = (Net PPW - Redline) x Watts where Net PPW = (CV - Dealer Fee - Adders) / Watts.",
   "totalJobs": 26,
   "skipped": {
     "no_system_size": 108,
     "no_cv": 130,
     "no_state": 90,
-    "equipment_below_threshold": 10,
+    "equipment_below_threshold": 11,
     "no_labor": 24,
     "no_redline": 23,
     "no_equipment": 15
@@ -26,8 +26,8 @@
     },
     {
       "state": "FL",
-      "avg_gp": 9576,
-      "total_gp": 134060,
+      "avg_gp": 9547,
+      "total_gp": 133660,
       "n": 14
     },
     {
@@ -397,9 +397,9 @@
       "labor": 131.61,
       "equipment": 6644.98,
       "permit_cost": 148.34,
-      "utility_cost": 0.0,
-      "total_expenses": 6924.93,
-      "gp": 4879.07
+      "utility_cost": 400.0,
+      "total_expenses": 7324.93,
+      "gp": 4479.07
     },
     {
       "pid": "tFiLlSQIQ1y3WLXZNTQU8g",
