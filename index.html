@@ -1039,10 +1039,7 @@
         return `
           <tr class="${rowClass} border-b border-gray-800/50 transition-colors">
             <td class="py-2.5 px-3 font-medium">
-              ${notes
-                ? `<span class="text-white cursor-pointer hover:text-blue-300 transition-colors" onclick="openProjectNotes('${notesKey}')" title="Click to view project notes">${escHtml(name)} <span class="text-blue-500 text-xs">📋</span></span>`
-                : `<span class="text-white">${escHtml(name)}</span>`
-              }
+              <span class="text-white cursor-pointer hover:text-blue-300 transition-colors underline underline-offset-2 decoration-dotted decoration-gray-600" onclick="openProjectNotes('${notesKey}')" title="${notes ? 'View project notes' : 'No project notes recorded'}">${escHtml(name)}${notes ? ' <span class="text-blue-400 text-xs no-underline">📋</span>' : ''}</span>
             </td>
             <td class="py-2.5 px-3">
               <span class="text-xs ${stageColors} border px-2 py-0.5 rounded-full font-medium">${escHtml(stage)}</span>
