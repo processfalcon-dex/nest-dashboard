@@ -1032,9 +1032,18 @@
           ? `<span class="text-xs font-bold px-2 py-0.5 rounded-full badge-urgent">OVERDUE</span>`
           : `<span class="text-xs font-bold px-2 py-0.5 rounded-full badge-review">AT RISK</span>`;
 
+        const notes = (row['JNo66'] || '').trim();
+        const notesKey = 'stalled_notes_' + row['$rowID'];
+        window[notesKey] = { name, notes, stage, state: (row[C.state]||'—'), rep: (row[C.salesRep]||'—'), finance: (row['G8eYI']||'—'), slaLabel, status };
+
         return `
           <tr class="${rowClass} border-b border-gray-800/50 transition-colors">
-            <td class="py-2.5 px-3 font-medium text-white">${escHtml(name)}</td>
+            <td class="py-2.5 px-3 font-medium">
+              ${notes
+                ? `<span class="text-white cursor-pointer hover:text-blue-300 transition-colors" onclick="openProjectNotes('${notesKey}')" title="Click to view project notes">${escHtml(name)} <span class="text-blue-500 text-xs">📋</span></span>`
+                : `<span class="text-white">${escHtml(name)}</span>`
+              }
+            </td>
             <td class="py-2.5 px-3">
               <span class="text-xs ${stageColors} border px-2 py-0.5 rounded-full font-medium">${escHtml(stage)}</span>
             </td>
@@ -2687,6 +2696,43 @@
             </div>
           </div>
           ${_installAlertRows.length > 1 ? `<div class="text-xs text-gray-500 text-center pt-2 cursor-pointer hover:text-gray-300 transition-colors" onclick="drillInstallAlerts()">← View all ${_installAlertRows.length} flagged jobs</div>` : ''}
+        </div>`;
+      document.getElementById('drill-modal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    // ─── Project Notes modal ─────────────────────────────────────────────────
+
+    function openProjectNotes(key) {
+      const d = window[key];
+      if (!d) return;
+      document.getElementById('drill-modal-title').textContent = d.name;
+      document.getElementById('drill-modal-sub').textContent = `${d.stage} · ${d.state} · ${d.slaLabel} · ${d.status.toUpperCase()} · ${d.finance}`;
+      document.getElementById('drill-modal-body').innerHTML = `
+        <div class="p-5">
+          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">📋 Project Notes</div>
+          ${d.notes
+            ? `<div class="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed bg-white/5 rounded-lg p-4 border border-white/10">${escHtml(d.notes)}</div>`
+            : `<div class="text-sm text-gray-500 italic">No project notes recorded.</div>`
+          }
+          <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
+            <div class="bg-white/5 rounded-lg p-3">
+              <div class="text-xs text-gray-500 mb-1">Stage</div>
+              <div class="text-white">${escHtml(d.stage)}</div>
+            </div>
+            <div class="bg-white/5 rounded-lg p-3">
+              <div class="text-xs text-gray-500 mb-1">Days / SLA</div>
+              <div class="text-white">${escHtml(d.slaLabel)}</div>
+            </div>
+            <div class="bg-white/5 rounded-lg p-3">
+              <div class="text-xs text-gray-500 mb-1">Sales Rep</div>
+              <div class="text-white">${escHtml(d.rep)}</div>
+            </div>
+            <div class="bg-white/5 rounded-lg p-3">
+              <div class="text-xs text-gray-500 mb-1">Finance</div>
+              <div class="text-white">${escHtml(d.finance)}</div>
+            </div>
+          </div>
         </div>`;
       document.getElementById('drill-modal').classList.add('open');
       document.body.style.overflow = 'hidden';
