@@ -1055,7 +1055,7 @@
       }).join('');
     }
 
-    function buildStateGrid(stateMap, stateKwMap = {}) {
+    function buildStateGrid(stateMap, stateKwMap = {}, statePreMap = {}, statePreKwMap = {}, stateInstallMap = {}, stateInstallKwMap = {}) {
       const grid = document.getElementById('pipeline-state-grid');
       if (!grid) return;
 
@@ -1078,6 +1078,10 @@
       grid.innerHTML = sorted.map(([state, count]) => {
         const colorClass = stateColorMap[state] || 'text-gray-300';
         const kw = stateKwMap[state] || 0;
+        const preCount = statePreMap[state] || 0;
+        const preKw = statePreKwMap[state] || 0;
+        const installCount = stateInstallMap[state] || 0;
+        const installKw = stateInstallKwMap[state] || 0;
         return `
           <div class="stat-card">
             <div class="flex items-center justify-between mb-2">
@@ -1086,6 +1090,16 @@
             <div class="text-2xl font-bold text-white">${count}</div>
             <div class="text-xs text-gray-400 mt-1">Active jobs</div>
             <div class="text-xs text-cyan-300 mt-1 font-medium">${kw > 0 ? kw.toFixed(1) + ' kW' : '—'}</div>
+            <div class="mt-3 pt-3 border-t border-white/10 space-y-1">
+              <div class="flex items-center justify-between text-[11px] text-gray-400">
+                <span>Pre-Install</span>
+                <span>${preCount} · ${preKw > 0 ? preKw.toFixed(1) + ' kW' : '—'}</span>
+              </div>
+              <div class="flex items-center justify-between text-[11px] text-gray-400">
+                <span>Install+</span>
+                <span>${installCount} · ${installKw > 0 ? installKw.toFixed(1) + ' kW' : '—'}</span>
+              </div>
+            </div>
           </div>`;
       }).join('');
     }
@@ -1107,6 +1121,13 @@
 
       try {
         const rows = await fetchAllRows();
+        const cache = await getGlideCache();
+        const scheduledWork = (cache && cache.scheduledWork) || [];
+        const installWorkOrderPids = new Set(
+          scheduledWork
+            .filter(sw => ((sw['ZOXBN'] || '').trim() === 'Installation') && (sw['Name'] || '').trim())
+            .map(sw => (sw['Name'] || '').trim())
+        );
         const now  = new Date();
 
         const thisWeek    = getWeekBounds(0);
@@ -1128,6 +1149,10 @@
 
         const stateMap = {};
         const stateKwMap = {};
+        const statePreMap = {};
+        const statePreKwMap = {};
+        const stateInstallMap = {};
+        const stateInstallKwMap = {};
         const stalledCandidates = [];
 
         for (const row of rows) {
@@ -1138,8 +1163,12 @@
 
             // Pipeline by state
             const st = (row[C.state] || '').toString().trim().toUpperCase();
+            const pid = (row['$rowID'] || '').trim();
+            const hasInstallWO = !!(pid && installWorkOrderPids.has(pid));
             if (st) {
               stateMap[st] = (stateMap[st] || 0) + 1;
+              if (hasInstallWO) stateInstallMap[st] = (stateInstallMap[st] || 0) + 1;
+              else statePreMap[st] = (statePreMap[st] || 0) + 1;
             }
 
             // Avg system size — panels × wattage / 1000
@@ -1149,7 +1178,11 @@
               const kw = panels * watts / 1000;
               systemSizeSum += kw;
               systemSizeCount++;
-              if (st) stateKwMap[st] = (stateKwMap[st] || 0) + kw;
+              if (st) {
+                stateKwMap[st] = (stateKwMap[st] || 0) + kw;
+                if (hasInstallWO) stateInstallKwMap[st] = (stateInstallKwMap[st] || 0) + kw;
+                else statePreKwMap[st] = (statePreKwMap[st] || 0) + kw;
+              }
             }
 
             // SLA-aware stage status — biz days in current stage vs per-stage SLA
@@ -1289,7 +1322,7 @@
         }
 
         buildChart(stateLabels, stateValues);
-        buildStateGrid(stateMap, stateKwMap);
+        buildStateGrid(stateMap, stateKwMap, statePreMap, statePreKwMap, stateInstallMap, stateInstallKwMap);
 
         // ── Timestamp ──
         setLastUpdated();
