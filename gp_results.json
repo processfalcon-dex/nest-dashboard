@@ -1,15 +1,15 @@
 {
-  "computedAt": "2026-04-01T01:30:22.830450Z",
+  "computedAt": "2026-04-03T01:30:50.893869Z",
   "formula": "GP = CV (funding) - Commission - Labor - Materials - M1 - Other Expenses. Commission = (Net PPW - Redline) x Watts where Net PPW = (CV - Dealer Fee - Adders) / Watts.",
-  "totalJobs": 26,
+  "totalJobs": 29,
   "skipped": {
     "no_system_size": 108,
     "no_cv": 130,
     "no_state": 90,
-    "equipment_below_threshold": 11,
-    "no_labor": 24,
+    "equipment_below_threshold": 13,
+    "no_labor": 18,
     "no_redline": 23,
-    "no_equipment": 15
+    "no_equipment": 17
   },
   "byState": [
     {
@@ -26,15 +26,15 @@
     },
     {
       "state": "FL",
-      "avg_gp": 9547,
-      "total_gp": 133660,
-      "n": 14
+      "avg_gp": 9048,
+      "total_gp": 144765,
+      "n": 16
     },
     {
       "state": "NC",
-      "avg_gp": 4086,
-      "total_gp": 20429,
-      "n": 5
+      "avg_gp": 4509,
+      "total_gp": 27053,
+      "n": 6
     }
   ],
   "byRep": [
@@ -49,11 +49,11 @@
     },
     {
       "rep": "Victor Diaz",
-      "avg_gp": 7832,
-      "avg_kw": 12.2,
-      "gp_per_kw": 643,
-      "total_gp": 15664,
-      "n": 2,
+      "avg_gp": 6764,
+      "avg_kw": 11.0,
+      "gp_per_kw": 616,
+      "total_gp": 20293,
+      "n": 3,
       "flagged_jobs": 0
     },
     {
@@ -66,16 +66,50 @@
       "flagged_jobs": 1
     },
     {
+      "rep": "Martell Keyes",
+      "avg_gp": 5477,
+      "avg_kw": 5.2,
+      "gp_per_kw": 1061,
+      "total_gp": 10955,
+      "n": 2,
+      "flagged_jobs": 0
+    },
+    {
       "rep": "ZOE LUNA",
-      "avg_gp": 4086,
-      "avg_kw": 8.6,
-      "gp_per_kw": 477,
-      "total_gp": 20429,
-      "n": 5,
+      "avg_gp": 4509,
+      "avg_kw": 8.8,
+      "gp_per_kw": 514,
+      "total_gp": 27053,
+      "n": 6,
       "flagged_jobs": 1
     }
   ],
   "jobs": [
+    {
+      "pid": "F4jgV93RSiO7Z8uA-6F3-w",
+      "customer": "Jonelle Farris",
+      "state": "FL",
+      "rep": "Victor Diaz",
+      "install_date": "2026-03-10",
+      "redline_src": "dealer:Quantum Energy",
+      "cv": 21180.6,
+      "dealer_fee": 0.0,
+      "adders": 3444.0,
+      "net_price_comm": 17736.6,
+      "net_ppw": 2.06,
+      "redline": 1.875,
+      "commission": 1592.85,
+      "system_kw": 8.61,
+      "mat_per_w": 1.219,
+      "equip_flag": false,
+      "equip_estimated": false,
+      "labor": 3960.6,
+      "equipment": 10491.35,
+      "permit_cost": 256.25,
+      "utility_cost": 0.0,
+      "total_expenses": 14958.2,
+      "gp": 4629.55
+    },
     {
       "pid": "aU2eZi7HR2GZSqzImMEQ.g",
       "customer": "Richard Ellsworth",
@@ -398,8 +432,8 @@
       "equipment": 6644.98,
       "permit_cost": 148.34,
       "utility_cost": 400.0,
-      "total_expenses": 7324.93,
-      "gp": 4479.07
+      "total_expenses": 7724.93,
+      "gp": 4079.07
     },
     {
       "pid": "tFiLlSQIQ1y3WLXZNTQU8g",
@@ -602,6 +636,31 @@
       "gp": 17961.82
     },
     {
+      "pid": "u2KJ71KdQvi4RxaM8hfObg",
+      "customer": "Marie Gabriel",
+      "state": "FL",
+      "rep": "Martell Keyes",
+      "install_date": "2026-03-11",
+      "redline_src": "dealer:JUSI POWER",
+      "cv": 17079.6,
+      "dealer_fee": 0.0,
+      "adders": 4650.0,
+      "net_price_comm": 12429.6,
+      "net_ppw": 2.409,
+      "redline": 1.9,
+      "commission": 2625.6,
+      "system_kw": 5.16,
+      "mat_per_w": 1.01,
+      "equip_flag": false,
+      "equip_estimated": false,
+      "labor": 1950.6,
+      "equipment": 5210.85,
+      "permit_cost": 129.0,
+      "utility_cost": 0.0,
+      "total_expenses": 7578.45,
+      "gp": 6875.55
+    },
+    {
       "pid": "7auHoenXRHOPwHkbzKjQ1A",
       "customer": "Henry Jose Omier",
       "state": "NC",
@@ -700,6 +759,31 @@
       "utility_cost": 0.0,
       "total_expenses": 38947.46,
       "gp": 38885.54
+    },
+    {
+      "pid": "ktat.1XeSrKCP73O-fYYGw",
+      "customer": "Eusebio Ordonez Cordero",
+      "state": "NC",
+      "rep": "Zoe Luna",
+      "install_date": "2026-03-19",
+      "redline_src": "dealer:Alpha Energy",
+      "cv": 29028.0,
+      "dealer_fee": 0.0,
+      "adders": 1584.0,
+      "net_price_comm": 27444.0,
+      "net_ppw": 2.789,
+      "redline": 1.95,
+      "commission": 8256.0,
+      "system_kw": 9.84,
+      "mat_per_w": 1.102,
+      "equip_flag": false,
+      "equip_estimated": false,
+      "labor": 2755.2,
+      "equipment": 10845.86,
+      "permit_cost": 296.26,
+      "utility_cost": 250.0,
+      "total_expenses": 14147.32,
+      "gp": 6624.68
     },
     {
       "pid": "m0DRlhr9REqPLuP-QVaduw",
