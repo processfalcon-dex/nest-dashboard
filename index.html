@@ -1055,7 +1055,7 @@
       }).join('');
     }
 
-    function buildStateGrid(stateMap) {
+    function buildStateGrid(stateMap, stateKwMap = {}) {
       const grid = document.getElementById('pipeline-state-grid');
       if (!grid) return;
 
@@ -1077,6 +1077,7 @@
 
       grid.innerHTML = sorted.map(([state, count]) => {
         const colorClass = stateColorMap[state] || 'text-gray-300';
+        const kw = stateKwMap[state] || 0;
         return `
           <div class="stat-card">
             <div class="flex items-center justify-between mb-2">
@@ -1084,6 +1085,7 @@
             </div>
             <div class="text-2xl font-bold text-white">${count}</div>
             <div class="text-xs text-gray-400 mt-1">Active jobs</div>
+            <div class="text-xs text-cyan-300 mt-1 font-medium">${kw > 0 ? kw.toFixed(1) + ' kW' : '—'}</div>
           </div>`;
       }).join('');
     }
@@ -1125,6 +1127,7 @@
         let systemSizeCount  = 0;
 
         const stateMap = {};
+        const stateKwMap = {};
         const stalledCandidates = [];
 
         for (const row of rows) {
@@ -1143,8 +1146,10 @@
             const panels = parseFloat(row[C.panelCount]);
             const watts  = extractWatts(row[C.panelModel]);
             if (panels && watts) {
-              systemSizeSum += panels * watts / 1000;
+              const kw = panels * watts / 1000;
+              systemSizeSum += kw;
               systemSizeCount++;
+              if (st) stateKwMap[st] = (stateKwMap[st] || 0) + kw;
             }
 
             // SLA-aware stage status — biz days in current stage vs per-stage SLA
@@ -1284,7 +1289,7 @@
         }
 
         buildChart(stateLabels, stateValues);
-        buildStateGrid(stateMap);
+        buildStateGrid(stateMap, stateKwMap);
 
         // ── Timestamp ──
         setLastUpdated();
