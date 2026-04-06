@@ -1,7 +1,7 @@
 {
-  "computedAt": "2026-04-03T01:30:50.893869Z",
+  "computedAt": "2026-04-06T01:30:31.516208Z",
   "formula": "GP = CV (funding) - Commission - Labor - Materials - M1 - Other Expenses. Commission = (Net PPW - Redline) x Watts where Net PPW = (CV - Dealer Fee - Adders) / Watts.",
-  "totalJobs": 29,
+  "totalJobs": 33,
   "skipped": {
     "no_system_size": 108,
     "no_cv": 130,
@@ -9,7 +9,7 @@
     "equipment_below_threshold": 13,
     "no_labor": 18,
     "no_redline": 23,
-    "no_equipment": 17
+    "no_equipment": 13
   },
   "byState": [
     {
@@ -26,15 +26,15 @@
     },
     {
       "state": "FL",
-      "avg_gp": 9048,
-      "total_gp": 144765,
-      "n": 16
+      "avg_gp": 8673,
+      "total_gp": 164786,
+      "n": 19
     },
     {
       "state": "NC",
-      "avg_gp": 4509,
-      "total_gp": 27053,
-      "n": 6
+      "avg_gp": 4510,
+      "total_gp": 31570,
+      "n": 7
     }
   ],
   "byRep": [
@@ -57,12 +57,21 @@
       "flagged_jobs": 0
     },
     {
+      "rep": "Homei Okanishi",
+      "avg_gp": 6491,
+      "avg_kw": 5.4,
+      "gp_per_kw": 1201,
+      "total_gp": 12983,
+      "n": 2,
+      "flagged_jobs": 0
+    },
+    {
       "rep": "Brandon Cesare",
-      "avg_gp": 6209,
-      "avg_kw": 8.1,
-      "gp_per_kw": 771,
-      "total_gp": 18626,
-      "n": 3,
+      "avg_gp": 5998,
+      "avg_kw": 7.9,
+      "gp_per_kw": 760,
+      "total_gp": 23991,
+      "n": 4,
       "flagged_jobs": 1
     },
     {
@@ -76,11 +85,11 @@
     },
     {
       "rep": "ZOE LUNA",
-      "avg_gp": 4509,
-      "avg_kw": 8.8,
-      "gp_per_kw": 514,
-      "total_gp": 27053,
-      "n": 6,
+      "avg_gp": 4510,
+      "avg_kw": 8.9,
+      "gp_per_kw": 505,
+      "total_gp": 31570,
+      "n": 7,
       "flagged_jobs": 1
     }
   ],
@@ -186,6 +195,31 @@
       "gp": 10855.71
     },
     {
+      "pid": "sxFGNqrERFeo9v.bFjD7eA",
+      "customer": "Gustavo Cordoves",
+      "state": "FL",
+      "rep": "Luis Cordero",
+      "install_date": "2026-03-18",
+      "redline_src": "dealer:Assure Energy LLC",
+      "cv": 16312.5,
+      "dealer_fee": 0.0,
+      "adders": 1850.0,
+      "net_price_comm": 14462.5,
+      "net_ppw": 2.216,
+      "redline": 1.95,
+      "commission": 1738.75,
+      "system_kw": 6.53,
+      "mat_per_w": 1.093,
+      "equip_flag": false,
+      "equip_estimated": false,
+      "labor": 1500.75,
+      "equipment": 7131.43,
+      "permit_cost": 237.78,
+      "utility_cost": 0.0,
+      "total_expenses": 9119.96,
+      "gp": 5453.79
+    },
+    {
       "pid": "T.MGBBXYRfywjdjiGun0Zw",
       "customer": "Celina Moya",
       "state": "FL",
@@ -209,6 +243,31 @@
       "utility_cost": 0.0,
       "total_expenses": 25418.24,
       "gp": 9581.76
+    },
+    {
+      "pid": "unwxP18oQveqBI2ZPVsF1g",
+      "customer": "Suzanne Myers",
+      "state": "FL",
+      "rep": "Brandon Cesare",
+      "install_date": "2026-03-19",
+      "redline_src": "dealer:Cesare",
+      "cv": 18117.75,
+      "dealer_fee": 0.0,
+      "adders": 539.5,
+      "net_price_comm": 17578.25,
+      "net_ppw": 2.377,
+      "redline": 1.95,
+      "commission": 3158.0,
+      "system_kw": 7.39,
+      "mat_per_w": 1.005,
+      "equip_flag": false,
+      "equip_estimated": true,
+      "labor": 1996.65,
+      "equipment": 7433.78,
+      "permit_cost": 164.23,
+      "utility_cost": 0.0,
+      "total_expenses": 9594.66,
+      "gp": 5365.09
     },
     {
       "pid": "D8SlpmvjTEKx3ESqr3KzHg",
@@ -378,12 +437,12 @@
       "mat_per_w": 1.64,
       "equip_flag": false,
       "equip_estimated": false,
-      "labor": 1279.6,
+      "labor": 1604.6,
       "equipment": 6052.59,
       "permit_cost": 256.0,
       "utility_cost": 250.0,
-      "total_expenses": 7966.19,
-      "gp": 929.31
+      "total_expenses": 8291.19,
+      "gp": 604.31
     },
     {
       "pid": "b0gS7MGLQSCly2h8KhtVag",
@@ -478,12 +537,12 @@
       "mat_per_w": 1.058,
       "equip_flag": false,
       "equip_estimated": false,
-      "labor": 2636.2,
+      "labor": 3048.0,
       "equipment": 9102.35,
       "permit_cost": 212.95,
       "utility_cost": 50.0,
-      "total_expenses": 12001.5,
-      "gp": 5468.5
+      "total_expenses": 12413.3,
+      "gp": 5056.7
     },
     {
       "pid": "pCjy0Y3iS1iYoO3k7Jqkyg",
@@ -528,12 +587,12 @@
       "mat_per_w": 1.055,
       "equip_flag": false,
       "equip_estimated": false,
-      "labor": 3544.4,
+      "labor": 3862.4,
       "equipment": 9864.8,
       "permit_cost": 300.0,
       "utility_cost": 250.0,
-      "total_expenses": 13959.2,
-      "gp": 4323.3
+      "total_expenses": 14277.2,
+      "gp": 4005.3
     },
     {
       "pid": "5vlsBJ4HQlqKukGxjWDdjw",
@@ -636,6 +695,31 @@
       "gp": 17961.82
     },
     {
+      "pid": "y7oAgFyUSrCI6APWh0bPHQ",
+      "customer": "Vilma Odeth Arita Gonzales",
+      "state": "NC",
+      "rep": "Zoe Luna",
+      "install_date": "2026-03-12",
+      "redline_src": "dealer:Alpha Energy",
+      "cv": 26863.2,
+      "dealer_fee": 0.0,
+      "adders": 700.0,
+      "net_price_comm": 26163.2,
+      "net_ppw": 2.659,
+      "redline": 1.95,
+      "commission": 6975.2,
+      "system_kw": 9.84,
+      "mat_per_w": 1.112,
+      "equip_flag": false,
+      "equip_estimated": false,
+      "labor": 2773.4,
+      "equipment": 10946.99,
+      "permit_cost": 346.26,
+      "utility_cost": 250.0,
+      "total_expenses": 14316.65,
+      "gp": 5571.35
+    },
+    {
       "pid": "u2KJ71KdQvi4RxaM8hfObg",
       "customer": "Marie Gabriel",
       "state": "FL",
@@ -684,6 +768,31 @@
       "utility_cost": 250.0,
       "total_expenses": 17977.75,
       "gp": 8166.54
+    },
+    {
+      "pid": "IbzAHBsHQkWkItbBN.p0dw",
+      "customer": "John Kienlen",
+      "state": "FL",
+      "rep": "Homei Okanishi",
+      "install_date": "2026-04-02",
+      "redline_src": "dealer:Homei Okanishi",
+      "cv": 31807.15,
+      "dealer_fee": 0.0,
+      "adders": 17439.52,
+      "net_price_comm": 14367.63,
+      "net_ppw": 3.003,
+      "redline": 1.95,
+      "commission": 5036.88,
+      "system_kw": 4.79,
+      "mat_per_w": 2.981,
+      "equip_flag": false,
+      "equip_estimated": false,
+      "labor": 2963.2,
+      "equipment": 14265.59,
+      "permit_cost": 89.52,
+      "utility_cost": 0.0,
+      "total_expenses": 17568.31,
+      "gp": 9201.96
     },
     {
       "pid": "Y08jdwH0Qhyrj-DE8rnvrQ",
