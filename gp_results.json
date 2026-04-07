@@ -1,5 +1,5 @@
 {
-  "computedAt": "2026-04-06T01:30:31.516208Z",
+  "computedAt": "2026-04-07T01:30:26.031497Z",
   "formula": "GP = CV (funding) - Commission - Labor - Materials - M1 - Other Expenses. Commission = (Net PPW - Redline) x Watts where Net PPW = (CV - Dealer Fee - Adders) / Watts.",
   "totalJobs": 33,
   "skipped": {
@@ -7,9 +7,9 @@
     "no_cv": 130,
     "no_state": 90,
     "equipment_below_threshold": 13,
-    "no_labor": 18,
-    "no_redline": 23,
-    "no_equipment": 13
+    "no_labor": 20,
+    "no_redline": 25,
+    "no_equipment": 14
   },
   "byState": [
     {
@@ -815,7 +815,7 @@
       "labor": 4526.4,
       "equipment": 11575.18,
       "permit_cost": 505.18,
-      "utility_cost": 0,
+      "utility_cost": 0.0,
       "total_expenses": 16606.76,
       "gp": 4807.99
     },
